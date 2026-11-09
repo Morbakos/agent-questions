@@ -89,7 +89,7 @@ Controller -> Service -> Repository
 Fastify onSend / onResponse no-store on /api and /auth; request log at debug; 401/403 logged
 ```
 
-Static UI files come from `@nestjs/serve-static` (with `fallthrough: true`, serving `index.html` for Angular routes). That loader ignores its `exclude` option, so `UnknownRouteController` answers a JSON 404 under `/api`, `/auth`, `/mcp/*` and `/.well-known`. Without it an MCP client probing OAuth discovery would receive the UI's HTML or a 401 and abort.
+Static UI files come from `@nestjs/serve-static` (with `fallthrough: true`, serving `index.html` for Angular routes). That loader ignores its `exclude` option, so `UnknownRouteController` answers a JSON 404 under `/api`, `/auth`, `/mcp/*`, `/.well-known`, `/sse` and `/messages` (the last two are the unsupported legacy HTTP+SSE transport). Without it an MCP client probing OAuth discovery or falling back to SSE would receive the UI's HTML or a 401 and abort.
 
 ## Single connection, one writer
 
