@@ -14,13 +14,15 @@ bun run build:server   # typecheck + dependency check + bundle (the UI must alre
 Outputs:
 
 - `packages/ui/dist/ui/browser/`: the Angular production build (hashed files, `security.autoCsp`).
-- `dist/index.js`: the server bundle (minified, no source map). `dist/ui/`: a copy of the UI.
+- `dist/index.js`: the server entry point (minified, no source map), plus `dist/chunks/`: the code-split chunks it loads lazily (the `--stdio` launcher, the Nest application, the MCP tools). `dist/ui/`: a copy of the UI.
+
+Code splitting means code must not assume it sits next to `index.js`: a module may end up in `dist/chunks/`. Never use `import.meta.url` to find the entry point or the UI (use `process.argv[1]`; the UI lookup also checks `dist/ui`).
 
 `bun run start` runs `node dist/index.js`. The server runs on Node >= 22.13 or Bun >= 1.4, because both provide `node:sqlite`. Do not use `bun:sqlite`: it would break Node, `npx` and Vitest. No native dependency is allowed for the same reason (the SQLite dialect is `NodeSqliteDialect`).
 
 ## `scripts/build-server.ts`
 
-It bundles `packages/server/src/main.ts` with `Bun.build` (target `node`, ESM) and then checks the result. The bundle is a production artifact: whitespace and syntax are minified, but identifiers are **not** mangled (Nest and MikroORM derive provider and entity names from class names), and no source map is produced, so the original sources are not shipped. Stack traces therefore point into `dist/index.js`; to debug with readable traces, run from sources (`bun run dev:server`). In order, it:
+It bundles `packages/server/src/main.ts` with `Bun.build` (target `node`, ESM) and then checks the result. The bundle is a production artifact: whitespace and syntax are minified, but identifiers are **not** mangled (Nest and MikroORM derive provider and entity names from class names), and no source map is produced, so the original sources are not shipped. Stack traces therefore point into `dist/index.js` or `dist/chunks/`; to debug with readable traces, run from sources (`bun run dev:server`). In order, it:
 
 1. Fails if the UI is not built (`packages/ui/dist/ui/browser/index.html` missing). A package without UI would be unusable, so it fails instead of publishing one.
 2. Deletes `dist/` and bundles. Every key of the root `dependencies` is `external`; `@agent-questions/shared` is not in them, so it is inlined (it ships as TypeScript).

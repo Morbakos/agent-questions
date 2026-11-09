@@ -19,7 +19,8 @@ await rm(dist, { recursive: true, force: true });
 const result = await Bun.build({
 	entrypoints: [fileURLToPath(new URL("../packages/server/src/main.ts", import.meta.url))],
 	outdir: fileURLToPath(dist),
-	naming: "index.js",
+	naming: { entry: "index.js", chunk: "chunks/[name]-[hash].js" },
+	splitting: true,
 	target: "node",
 	format: "esm",
 	external: Object.keys(dependencies),
@@ -39,7 +40,7 @@ if (!result.success) {
 
 // The `@app/…` and `@server/…` aliases must have been resolved by Bun.build: an alias left in the bundle would crash
 // at startup (Cannot find package). Fail here if a Bun update stopped reading `paths`.
-const bundle = await readFile(new URL("index.js", dist), "utf8");
+const bundle = (await Promise.all(result.outputs.map((output) => output.text()))).join("\n");
 if (/from\s*"@(app|server)\//.test(bundle)) {
 	console.error(
 		"The bundle contains unresolved aliases (@app/ or @server/): check `paths` in packages/server/tsconfig.json.",
@@ -61,10 +62,10 @@ const html = await readFile(new URL("index.html", uiBuild), "utf8");
 const hasInlineScript = /\sonload=|<script(?![^>]*\ssrc=)[^>]*>/i.test(html);
 if (hasInlineScript && !/http-equiv="Content-Security-Policy"/i.test(html)) {
 	console.error(
-		"index.html contient du JavaScript inline sans CSP par empreinte : activez `security.autoCsp` (Angular).",
+		"index.html contains inline JavaScript without a hash-based CSP: enable `security.autoCsp` (Angular).",
 	);
 	process.exit(1);
 }
 
 await cp(uiBuild, new URL("ui/", dist), { recursive: true });
-console.log("Build done: dist/index.js and dist/ui.");
+console.log(`Build done: dist/index.js, ${result.outputs.length - 1} chunk(s) and dist/ui.`);

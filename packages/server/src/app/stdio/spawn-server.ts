@@ -35,7 +35,7 @@ export async function ensureServer(url: URL, env: NodeJS.ProcessEnv = process.en
 			}
 			const logFd = openSync(logFile, "a");
 			try {
-				const child = spawn(process.execPath, [fileURLToPath(import.meta.url)], {
+				const child = spawn(process.execPath, [process.argv[1] ?? fileURLToPath(import.meta.url)], {
 					detached: true,
 					stdio: ["ignore", logFd, logFd],
 					windowsHide: true,

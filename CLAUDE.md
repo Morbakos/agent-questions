@@ -78,7 +78,9 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
       **Stdout est réservé au protocole** : rien d'autre ne doit y écrire dans ce chemin. Le serveur lancé reste le
       serveur unique partagé.
     - `src/main.ts` : point d'entrée.
-    - **Build** : `scripts/build-server.ts` (Bun.build) bundle `main.ts` en `dist/index.js` (`shared` inliné, `dependencies`
+    - **Build** : `scripts/build-server.ts` (Bun.build) bundle `main.ts` en `dist/index.js` + `dist/chunks/` (`splitting: true` : les `import()` dynamiques deviennent des chunks
+      chargés à la demande ; **ne jamais déduire l'emplacement de l'entrée ou de l'UI de `import.meta.url`**, un module peut
+      être dans `chunks/` : `spawn-server.ts` utilise `process.argv[1]`) (`shared` inliné, `dependencies`
       de la racine externes) et copie l'UI dans `dist/ui` (échoue si l'UI n'est pas construite). Bundle **minifié sans mangling des identifiants**
       (Nest et MikroORM tirent des noms des classes) et **sans sourcemap** ; la version vient du `package.json` racine,
       injectée par `define` (`__APP_VERSION__`, lue par `src/app/version.ts`, `0.0.0-dev` hors build). **Le paquet publié est le

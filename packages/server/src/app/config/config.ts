@@ -75,6 +75,11 @@ function defaultUiDir(here: string): string {
 	if (existsSync(bundled)) {
 		return bundled;
 	}
+	// Code-split bundle: this file lives in `dist/chunks/`, the UI next to `dist/index.js`.
+	const besideChunks = resolve(here, "..", "ui");
+	if (existsSync(resolve(besideChunks, "index.html"))) {
+		return besideChunks;
+	}
 	try {
 		return dirname(createRequire(import.meta.url).resolve("@agent-questions/ui/browser/index.html"));
 	} catch {

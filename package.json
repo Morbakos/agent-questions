@@ -26,7 +26,7 @@
 		"start": "node dist/index.js",
 		"dev:server": "bun run --cwd packages/server dev",
 		"dev:ui": "bun run --cwd packages/ui start",
-		"typecheck": "bun run --filter '*' --if-present typecheck && tsc --noEmit -p e2e",
+		"typecheck": "bun run --filter '*' --if-present typecheck && tsc --noEmit -p e2e && tsc --noEmit -p scripts",
 		"test": "vitest run && bun run test:server && bun run --cwd packages/ui test",
 		"test:server": "bun run --cwd packages/server test && bun run --cwd packages/server test:e2e",
 		"test:e2e": "playwright test",
