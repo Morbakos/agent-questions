@@ -778,7 +778,7 @@ describe("MCP-side isolation", () => {
 			await tool("update_questions", { session_id: secret.id, questions, wait_seconds: 0 }),
 			await tool("ask_user", { session_id: secret.id, questions, wait_seconds: 0 }),
 		]) {
-			expect(body).toContain("session_id inconnu");
+			expect(body).toContain("Unknown session_id");
 			expect(body).not.toContain("Secret");
 		}
 		expect((await app.get(SessionsService).get(adminId, secret.id))?.title).toBe("Secret");

@@ -98,7 +98,7 @@ is used (default `0`). Values above 3600 are rejected by the input schema.
   call, or the server shuts down. It then returns the state at that moment.
 
 While a call waits, the server sends an MCP progress notification right away and then every 15 seconds, if the client
-accepted progress reporting. The messages are in French (`En attente de la réponse de l'utilisateur`). A failed
+accepted progress reporting. The messages are in English (`Waiting for the user's answer`). A failed
 notification never interrupts the call.
 
 ## Tools
@@ -157,7 +157,7 @@ Reads the state of a session created by `ask_user`, optionally waiting for the a
 | `session_id`   | string (UUID) | yes      |                               | Must belong to the caller.                      |
 | `wait_seconds` | integer       | no       | `AQ_WAIT_SECONDS` (default 0) | 0 to 3600. See [`wait_seconds`](#wait_seconds). |
 
-An unknown `session_id` (or one owned by someone else) fails with `session_id inconnu : <id>`. A pending session
+An unknown `session_id` (or one owned by someone else) fails with `Unknown session_id: <id>`. A pending session
 also triggers the browser-opening rule described for `ask_user`.
 
 ### `update_questions`
@@ -225,8 +225,7 @@ Returning an `answered` result marks the session as delivered (`delivered_at`). 
 }
 ```
 
-`reason` is the text typed by the user; when empty it is `L'utilisateur a choisi de ne pas répondre.` ("The user
-chose not to answer."). A `declined` result also marks the session as delivered.
+`reason` is the text typed by the user; when empty it is `The user chose not to answer.`. A `declined` result also marks the session as delivered.
 
 ### `pending`
 
@@ -243,10 +242,11 @@ messages from HTTP-style errors reach the agent; any other failure becomes a gen
 | ---------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Input does not match the schema (missing field, bound exceeded, malformed question, fewer than 2 options, duplicate option ids, invalid UUID) | all | Validation message produced by the MCP SDK; the call is refused before the tool runs.            |
 | Duplicate question ids                                     | `ask_user`, `update_questions`          | `Duplicate question ids`                                                                           |
-| Unknown `session_id` (or another user's)                   | all                                     | `session_id inconnu : <id>`                                                                        |
+| Unknown `session_id` (or another user's)                   | all                                     | `Unknown session_id: <id>`                                                                         |
 | Session already answered or declined                       | `update_questions`                      | `Session already <answered\|declined>: it cannot be edited. Call get_answers with this session_id.` |
 | Session closed between the check and the update            | `update_questions`                      | `Cette session est déjà clôturée.`                                                                 |
-| 100 pending sessions already                               | `ask_user`                              | `Trop de sessions en attente (100) : répondez-y ou refusez-les.` ("Too many pending sessions")      |
+| 100 pending sessions already                               | `ask_user`                              | `Too many pending sessions (100): ask the user to answer or decline some of them.`                 |
+| Body that is not valid JSON (or empty)                     | all                                     | HTTP `400` with a JSON-RPC error `-32700` (`Parse error: …`) and `id: null`. Not a tool result.    |
 | Missing or invalid credentials                             | all                                     | HTTP `401` on `/mcp` before any tool runs (server profile). Not a tool result.                     |
 
 The 100-session cap is per user and counts only `pending` sessions.

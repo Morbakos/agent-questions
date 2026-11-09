@@ -75,7 +75,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 		if (input.sessionId) {
 			const existing = await this.repository.get(owner, input.sessionId);
 			if (!existing) {
-				throw new HttpError(404, `session_id inconnu : ${input.sessionId}`);
+				throw new HttpError(404, `Unknown session_id: ${input.sessionId}`);
 			}
 			return { session: existing, created: false };
 		}
@@ -88,7 +88,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 		if (!result) {
 			throw new HttpError(
 				409,
-				`Trop de sessions en attente (${MAX_PENDING_PER_OWNER}) : répondez-y ou refusez-les.`,
+				`Too many pending sessions (${MAX_PENDING_PER_OWNER}): ask the user to answer or decline some of them.`,
 			);
 		}
 		return result;

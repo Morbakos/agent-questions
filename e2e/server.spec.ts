@@ -105,7 +105,7 @@ test("several users: each one only sees their own questions, the admin supervise
 	// His agent cannot read the admin's session either.
 	const probe = await callTool(server, "get_answers", { session_id: adminSessionId, wait_seconds: 0 }, bobToken);
 	expect(probe.isError).toBe(true);
-	expect(probe.text).toContain("session_id inconnu");
+	expect(probe.text).toContain("Unknown session_id");
 	expect(probe.text).not.toContain("Secret");
 
 	// The admin sees both in the supervision view, read-only.

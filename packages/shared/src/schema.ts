@@ -19,7 +19,7 @@ export const QuestionSchema = z
 	.object({
 		id: z
 			.string()
-			.regex(/^[a-z0-9_]{1,64}$/, "snake_case attendu")
+			.regex(/^[a-z0-9_]{1,64}$/, "snake_case expected")
 			.describe("Stable identifier (snake_case), used to map answers"),
 		header: z.string().max(60).optional().describe("Short label shown in the outline"),
 		prompt: z.string().min(1).max(20_000).describe("The question itself (markdown)"),

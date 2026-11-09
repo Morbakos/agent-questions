@@ -37,7 +37,7 @@ come from `packages/shared/src/schema.ts` and `packages/shared/src/limits.ts`; t
 | RG-A-05 | "Autre" is offered by default on choice questions. With `allow_other: false` its text no longer counts toward "answered".                   |
 | RG-A-06 | The UI saves the draft 600 ms after the last keystroke. Only a pending session accepts a draft.                                             |
 | RG-A-07 | Answer text: at most 50,000 characters. Note: 5,000. Refusal reason: 2,000.                                                                 |
-| RG-A-08 | A decline needs no reason (default: empty). The agent then receives a default reason, "L'utilisateur a choisi de ne pas répondre.".         |
+| RG-A-08 | A decline needs no reason (default: empty). The agent then receives a default reason, "The user chose not to answer.".                      |
 
 ## Edits by the agent
 

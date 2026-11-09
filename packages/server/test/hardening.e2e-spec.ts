@@ -45,6 +45,24 @@ describe("request body size", () => {
 		await start();
 		expect((await mcpCall(11 * 1024 * 1024))?.statusCode).toBe(413);
 	});
+
+	it("answers an invalid or empty JSON body on /mcp with a JSON-RPC parse error", async () => {
+		await start();
+		for (const payload of ["{not json", ""]) {
+			const response = await inject({
+				method: "POST",
+				url: "/mcp",
+				headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+				payload,
+			});
+			expect(response?.statusCode, payload).toBe(400);
+			expect(response?.json()).toEqual({
+				jsonrpc: "2.0",
+				error: { code: -32700, message: expect.stringContaining("Parse error") },
+				id: null,
+			});
+		}
+	});
 });
 
 describe("security headers", () => {
@@ -175,8 +193,8 @@ describe("exception filters on MCP calls", () => {
 		const { HttpErrorFilter } = await import("@app/http/http-error.filter.js");
 		const { HttpError } = await import("@app/http/http-error.js");
 		const host = { getType: () => "mcp" } as never;
-		const result = new HttpErrorFilter().catch(new HttpError(404, "session_id inconnu : x"), host);
-		expect(result).toEqual({ content: [{ type: "text", text: "session_id inconnu : x" }], isError: true });
+		const result = new HttpErrorFilter().catch(new HttpError(404, "Unknown session_id: x"), host);
+		expect(result).toEqual({ content: [{ type: "text", text: "Unknown session_id: x" }], isError: true });
 	});
 
 	it("authentication denials too, without touching an HTTP response", async () => {

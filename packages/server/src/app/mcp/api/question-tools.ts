@@ -181,7 +181,7 @@ export class QuestionTools {
 		const owner = this.owner(context);
 		const session = await this.sessions.get(owner, session_id);
 		if (!session) {
-			throw new NotFoundException(`session_id inconnu : ${session_id}`);
+			throw new NotFoundException(`Unknown session_id: ${session_id}`);
 		}
 		return this.waitAndRespond(owner, session, wait_seconds, context);
 	}
@@ -219,7 +219,7 @@ export class QuestionTools {
 		const owner = this.owner(context);
 		const current = await this.sessions.get(owner, session_id);
 		if (!current) {
-			throw new NotFoundException(`session_id inconnu : ${session_id}`);
+			throw new NotFoundException(`Unknown session_id: ${session_id}`);
 		}
 		if (current.status !== "pending") {
 			throw new ConflictException(
@@ -278,7 +278,7 @@ export class QuestionTools {
 			return json({
 				status: "declined",
 				session_id: session.id,
-				reason: session.declineReason || "L'utilisateur a choisi de ne pas répondre.",
+				reason: session.declineReason || "The user chose not to answer.",
 			});
 		}
 		return json({
@@ -304,9 +304,9 @@ export class QuestionTools {
 		// A progress notification must never interrupt the tool call.
 		const notify = (progress: number, message: string) =>
 			void context.reportProgress(progress, undefined, message).catch(() => undefined);
-		notify(1, `En attente de la réponse de l'utilisateur : ${this.urlOf(session)}`);
+		notify(1, `Waiting for the user's answer: ${this.urlOf(session)}`);
 		let tick = 1;
-		const keepalive = setInterval(() => notify(++tick, "En attente de la réponse de l'utilisateur"), 15_000);
+		const keepalive = setInterval(() => notify(++tick, "Waiting for the user's answer"), 15_000);
 		const ms = Math.min(waitSeconds ?? this.cfg.defaultWaitSeconds, 3600) * 1000;
 		const startedAt = Date.now();
 		this.logger.log(`session ${session.id} : attente de ${ms / 1000}s`);
