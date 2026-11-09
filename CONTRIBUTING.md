@@ -8,7 +8,7 @@ By participating you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 ## Reporting bugs and requesting features
 
 - Bugs and feature requests: open an issue with the matching template.
-- Security vulnerabilities: open an issue with the "Security vulnerability" template (reports are public). See
+- Security vulnerabilities: do not open an issue; report them privately as described in
   [SECURITY.md](SECURITY.md).
 - For a bug, include the version (`package.json`), how you run the server (Docker or source; Node or Bun), the
   deployment profile (`local` or `server`), the agent client, steps to reproduce, and the relevant server log

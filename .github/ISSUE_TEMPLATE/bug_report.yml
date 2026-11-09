@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        For a security vulnerability, use the "Security vulnerability" template instead (see SECURITY.md). Never paste tokens or passwords.
+        For a security vulnerability, do not open an issue: report it privately (see SECURITY.md). Never paste tokens or passwords.
   - type: input
     id: version
     attributes:
