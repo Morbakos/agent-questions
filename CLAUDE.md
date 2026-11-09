@@ -250,7 +250,9 @@ Deux profils. **Local** : pas de compte, écoute sur `127.0.0.1`, à ne pas expo
       `AbortSignal` et réveil à l'arrêt (seulement `waitFor`).
     - `LoginThrottle` plutôt que `@nestjs/throttler` : il ne compte pas les seuls échecs, par identifiant et par adresse.
     - Garde Host/Origin, `Cache-Control: no-store` et journal des requêtes dans `http-setup.ts` : aucun package ne les
-      fournit (un intercepteur ne voit ni les refus des gardes, ni les réponses `hijack`).
+      fournit (un intercepteur ne voit ni les refus des gardes, ni les réponses `hijack`). Même fichier : un corps JSON
+      invalide sur `/mcp` est refusé par Fastify avant tout contrôleur (ni filtre Nest ni garde) ; un hook `onSend` le
+      convertit en erreur JSON-RPC `-32700`.
 - Les types partagés vivent dans `packages/shared/` : ne pas les redéclarer. Aucune étape de build après un changement.
 - Après un changement de comportement visible (variable `AQ_*`, outil, flux), mettre le README et les pages concernées de `docs/` (guide, operations, reference, development) à jour.
 

@@ -24,6 +24,32 @@ export async function configureHttp(app: NestFastifyApplication, config: AppConf
 		}
 	});
 
+	// A body Fastify cannot parse (invalid or empty JSON) is refused before `/mcp` runs, with a plain
+	// `{ statusCode, message }` payload. Turn it into a JSON-RPC parse error so an MCP client can read it. Errors
+	// raised by the MCP transport itself are already JSON-RPC (and hijacked: they never reach this hook).
+	fastify.addHook("onSend", async (request, reply, payload) => {
+		if (reply.statusCode !== 400 || !/^\/mcp(\?|$)/.test(request.url) || typeof payload !== "string") {
+			return payload;
+		}
+		try {
+			const body: unknown = JSON.parse(payload);
+			if (typeof body !== "object" || body === null || "jsonrpc" in body) {
+				return payload;
+			}
+			const { message } = body as { message?: unknown };
+			return JSON.stringify({
+				jsonrpc: "2.0",
+				error: {
+					code: -32700,
+					message: `Parse error: ${typeof message === "string" ? message : "invalid body"}`,
+				},
+				id: null,
+			});
+		} catch {
+			return payload;
+		}
+	});
+
 	// Authentication (401) or permission (403) refusals: logged with the method and path, never the token, the
 	// cookie or the password. `@nestjs/authentication` does not log its refusals.
 	const audit = new Logger("auth");

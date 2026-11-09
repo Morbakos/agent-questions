@@ -62,7 +62,7 @@ before it reached the server.
 Fix: send less context in `context_markdown`, or raise the proxy limit to at least 10 MiB
 ([reverse proxy](../operations/reverse-proxy.md#request-size)).
 
-### `Trop de sessions en attente (100)`
+### `Too many pending sessions (100)`
 
 Cause: you have 100 pending sessions (HTTP 409). Typically an agent created many without anyone answering.
 
