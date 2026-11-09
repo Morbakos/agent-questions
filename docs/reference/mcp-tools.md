@@ -23,6 +23,11 @@ The tool descriptions are read by models, and two of them depend on the configur
 (`AQ_WAIT_SECONDS`) and the relay hint (`AQ_NO_OPEN`). They are computed once per process, at startup. See
 [Configuration](configuration.md).
 
+The `initialize` result advertises `tools: { listChanged: true }`. This comes from the MCP SDK, which `@nestjs/mcp`
+does not let the application override: the tool list is in fact fixed for the lifetime of the process, and the server
+never sends a `notifications/tools/list_changed` (it is stateless and has no channel to push one). Clients can ignore
+the flag.
+
 ## Calling a tool
 
 Any MCP client works. With plain HTTP:
