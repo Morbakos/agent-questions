@@ -9,7 +9,7 @@ import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 const tarball = process.argv[2];
 if (!tarball) throw new Error("Usage: bun scripts/verify-package.ts <package.tgz> [node|bun]");
 const runtime = process.argv[3] ?? "node";
-if (runtime !== "node" && runtime !== "bun") throw new Error(`Runtime inconnu : ${runtime}`);
+if (runtime !== "node" && runtime !== "bun") throw new Error(`Unknown runtime: ${runtime}`);
 
 const tempDir = await mkdtemp(join(tmpdir(), "agent-questions-package-"));
 const port = 43800 + (process.pid % 1000);
@@ -94,6 +94,38 @@ try {
 		throw new Error(
 			`MCP serverInfo.version is "${message.result.serverInfo.version}", the package version is "${installed.version}".`,
 		);
+	}
+	// The stdio launcher of the installed package attaches to the running server and bridges `initialize`.
+	const bridged = await new Promise<string>((resolve, reject) => {
+		const launcher = spawn(runtime, [entry, "--stdio"], { cwd: tempDir, env, stdio: ["pipe", "pipe", "inherit"] });
+		const timer = setTimeout(() => {
+			launcher.kill();
+			reject(new Error("The stdio launcher did not answer initialize."));
+		}, 20_000);
+		let out = "";
+		launcher.stdout.on("data", (chunk: Buffer) => {
+			out += chunk.toString();
+			if (out.includes("\n")) {
+				clearTimeout(timer);
+				launcher.kill();
+				resolve(out.split("\n")[0] ?? "");
+			}
+		});
+		launcher.stdin.write(
+			JSON.stringify({
+				jsonrpc: "2.0",
+				id: 1,
+				method: "initialize",
+				params: {
+					protocolVersion: "2025-11-25",
+					capabilities: {},
+					clientInfo: { name: "package-smoke-test", version: "0.0.0" },
+				},
+			}) + "\n",
+		);
+	});
+	if (!JSON.parse(bridged).result?.serverInfo?.name) {
+		throw new Error("The stdio launcher of the installed package did not bridge MCP initialize.");
 	}
 	// A production package ships no source map (it would expose the original sources).
 	if (

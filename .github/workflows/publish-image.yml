@@ -56,14 +56,16 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest
 
-      # The Dockerfile already starts the package on Bun before producing the image; here we also check the finished
-      # image before any push: an image that does not answer on /health is never published.
+      # The image is built once, with its final tags and labels, then loaded locally. The Dockerfile already starts the
+      # package on Bun before producing the image; here we also check the finished image before any push: an image that
+      # does not answer on /health is never published. The push below sends these very tags, not a rebuild.
       - name: Build the image (not pushed yet)
         uses: docker/build-push-action@v6
         with:
           context: .
           load: true
-          tags: agent-questions:release-check
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -72,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
           trap 'docker rm -f aq-release >/dev/null 2>&1 || true' EXIT
-          docker run -d --name aq-release -p 127.0.0.1:4317:4317 agent-questions:release-check
+          docker run -d --name aq-release -p 127.0.0.1:4317:4317 "$IMAGE:latest"
           for attempt in $(seq 1 40); do
             curl --fail --silent http://127.0.0.1:4317/health >/dev/null && break
             sleep 1
@@ -86,11 +88,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Pushes the image that was just verified (every local tag of the repository, all created above).
       - name: Push the image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+        run: docker push --all-tags "$IMAGE"

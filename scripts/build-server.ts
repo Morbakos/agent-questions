@@ -10,7 +10,7 @@ const dist = new URL("../dist/", import.meta.url);
 
 // A package without a UI would be unusable: fail rather than publish.
 if (!(await stat(new URL("index.html", uiBuild)).catch(() => null))) {
-	console.error("UI non construite : lancez `bun run build` à la racine.");
+	console.error("UI not built: run `bun run build` at the repository root.");
 	process.exit(1);
 }
 
@@ -19,7 +19,8 @@ await rm(dist, { recursive: true, force: true });
 const result = await Bun.build({
 	entrypoints: [fileURLToPath(new URL("../packages/server/src/main.ts", import.meta.url))],
 	outdir: fileURLToPath(dist),
-	naming: "index.js",
+	naming: { entry: "index.js", chunk: "chunks/[name]-[hash].js" },
+	splitting: true,
 	target: "node",
 	format: "esm",
 	external: Object.keys(dependencies),
@@ -39,10 +40,10 @@ if (!result.success) {
 
 // The `@app/…` and `@server/…` aliases must have been resolved by Bun.build: an alias left in the bundle would crash
 // at startup (Cannot find package). Fail here if a Bun update stopped reading `paths`.
-const bundle = await readFile(new URL("index.js", dist), "utf8");
+const bundle = (await Promise.all(result.outputs.map((output) => output.text()))).join("\n");
 if (/from\s*"@(app|server)\//.test(bundle)) {
 	console.error(
-		"Le bundle contient des alias non résolus (@app/ ou @server/) : vérifiez `paths` dans packages/server/tsconfig.json.",
+		"The bundle contains unresolved aliases (@app/ or @server/): check `paths` in packages/server/tsconfig.json.",
 	);
 	process.exit(1);
 }
@@ -50,7 +51,7 @@ if (/from\s*"@(app|server)\//.test(bundle)) {
 // The version must have been injected (otherwise the server would announce the development fallback value), and
 // nothing else from package.json (scripts, devDependencies) may remain in the bundle.
 if (bundle.includes("0.0.0-dev") || !bundle.includes(JSON.stringify(version)) || bundle.includes('"devDependencies"')) {
-	console.error("La version n'a pas été injectée correctement dans le bundle (voir `define` ci-dessus).");
+	console.error("The version was not injected correctly into the bundle (see `define` above).");
 	process.exit(1);
 }
 
@@ -61,10 +62,10 @@ const html = await readFile(new URL("index.html", uiBuild), "utf8");
 const hasInlineScript = /\sonload=|<script(?![^>]*\ssrc=)[^>]*>/i.test(html);
 if (hasInlineScript && !/http-equiv="Content-Security-Policy"/i.test(html)) {
 	console.error(
-		"index.html contient du JavaScript inline sans CSP par empreinte : activez `security.autoCsp` (Angular).",
+		"index.html contains inline JavaScript without a hash-based CSP: enable `security.autoCsp` (Angular).",
 	);
 	process.exit(1);
 }
 
 await cp(uiBuild, new URL("ui/", dist), { recursive: true });
-console.log("Build terminé : dist/index.js et dist/ui.");
+console.log(`Build done: dist/index.js, ${result.outputs.length - 1} chunk(s) and dist/ui.`);
