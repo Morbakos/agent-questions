@@ -109,7 +109,14 @@ describe("CORS", () => {
 describe("unknown routes", () => {
 	it("answers 404 as JSON for an unknown API or OAuth discovery route, instead of the UI page", async () => {
 		await start();
-		for (const url of ["/api/nope", "/auth/nope", "/mcp/extra", "/.well-known/oauth-protected-resource"]) {
+		for (const url of [
+			"/api/nope",
+			"/auth/nope",
+			"/mcp/extra",
+			"/.well-known/oauth-protected-resource",
+			"/sse",
+			"/messages",
+		]) {
 			const response = await inject({ method: "GET", url });
 			expect(response?.statusCode, url).toBe(404);
 			expect(response?.json()).toEqual({ error: "Route introuvable" });

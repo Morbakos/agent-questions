@@ -118,8 +118,8 @@ Public, used by the Docker health check. Provided by `@nestjs/terminus`.
 
 ## Unknown routes
 
-Any method on `/api`, `/api/*`, `/auth`, `/auth/*`, `/mcp/*`, `/.well-known` and `/.well-known/*` that no route handles
-answers:
+Any method on `/api`, `/api/*`, `/auth`, `/auth/*`, `/mcp/*`, `/.well-known`, `/.well-known/*`, `/sse`, `/sse/*`,
+`/messages` and `/messages/*` that no route handles answers:
 
 ```
 404 {"error":"Route introuvable"}

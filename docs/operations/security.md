@@ -61,7 +61,7 @@ Behind a proxy, set `AQ_TRUST_PROXY` correctly or the per-address throttle is sh
   `Access-Control-Request-Method`.
 - **Auth guard**: global. Every route needs authentication except those explicitly public (`/health`, sign-in,
   invitation acceptance, unknown-route 404s). Every UI controller is restricted to cookie sessions.
-- **Unknown routes** under `/api`, `/auth`, `/mcp/*` and `/.well-known` return a JSON `404` rather than the UI page.
+- **Unknown routes** under `/api`, `/auth`, `/mcp/*`, `/.well-known`, `/sse` and `/messages` return a JSON `404` rather than the UI page.
 
 ## Response headers
 

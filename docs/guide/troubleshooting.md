@@ -163,10 +163,11 @@ the others.
 The link is single-use, valid for 7 days, replaced by any newer link, and unusable if the account is disabled. Ask an
 admin for "Nouveau lien".
 
-### 404 JSON under `/mcp/*`, `/api`, `/auth` or `/.well-known`
+### 404 JSON under `/mcp/*`, `/api`, `/auth`, `/.well-known`, `/sse` or `/messages`
 
 Expected for unknown routes: the server answers 404 JSON rather than the UI page, so a client probing OAuth discovery under
-`/.well-known` fails cleanly. Agent Questions does not use OAuth: register the plain `/mcp` URL.
+`/.well-known` fails cleanly. Agent Questions does not use OAuth: register the plain `/mcp` URL. It does not support the
+legacy HTTP+SSE transport either (`/sse`, `/messages`): use Streamable HTTP on `/mcp`, or the `--stdio` launcher.
 
 ## Docker and network
 

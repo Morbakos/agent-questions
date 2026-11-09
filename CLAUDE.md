@@ -36,8 +36,8 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
     - `http/` : `http-setup.ts` (garde Host/Origin, `no-store`, journal des requêtes), `security-headers.ts`, `allowed.ts`,
       `http-error*.ts`, `cursor.ts`, `log-levels.ts` (`AQ_LOG` → niveaux du `Logger` Nest). **L'UI est servie par
       `@nestjs/serve-static`** (`fallthrough: true`, `index.html` pour les routes d'Angular). Son chargeur Fastify **ignore
-      `exclude`** : `unknown-route.controller.ts` répond donc 404 JSON sous `/api`, `/auth`, `/mcp/*` et `/.well-known`
-      (`@Public()`) : sans cela un client MCP qui sonde la découverte OAuth recevrait la page de l'UI ou un 401 et échouerait.
+      `exclude`** : `unknown-route.controller.ts` répond donc 404 JSON sous `/api`, `/auth`, `/mcp/*`, `/.well-known`,
+      `/sse` et `/messages` (transport HTTP+SSE historique, non supporté) (`@Public()`) : sans cela un client MCP qui sonde la découverte OAuth recevrait la page de l'UI ou un 401 et échouerait.
       Jokers `*` simples, pas `*path` (Fastify). **Un seul journal** : le `Logger` de Nest ; Fastify a `logger: false`.
       Requêtes journalisées en `debug`, sans `/health`.
     - `storage/` : `orm.ts` (`ormOptions`, `prepareDatabase` : PRAGMA WAL puis migrations, `createOrm` pour les tests),
