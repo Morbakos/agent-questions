@@ -66,7 +66,9 @@ The image runs the exact tarball that would be published. Bun is the production 
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pull requests (from the same repository, not forks) and on pushes to `main`, with a 20 minute timeout, on Bun 1.4.4 and Node 24:
+`.github/workflows/ci.yml` runs on pull requests (from the same repository, not forks) and on pushes to `main`, with a 20 minute timeout per job. Two jobs run in parallel.
+
+**`validate`** (Bun 1.4.4 and Node 24):
 
 1. `bun install --frozen-lockfile`
 2. `bun run typecheck`
@@ -75,8 +77,9 @@ The image runs the exact tarball that would be published. Bun is the production 
 5. `bun run test`
 6. `bun run build`
 7. Install Chromium, `bun run test:e2e` (Playwright traces uploaded on failure)
-8. `bun pm pack`, then `verify-package.ts` on Node and on Bun
-9. `docker build`, start the container, check `/health`, insert a session row into `/data`, restart the container and check that the session survived (persistent volume)
+8. `bun pm pack`, then `verify-package.ts` on Node (the Bun run is done by the Dockerfile, see the `docker` job)
+
+**`docker`**: `docker build` (the Dockerfile builds the package itself and starts it on Bun), start the container, check `/health`, insert a session row into `/data`, restart the container and check that the session survived (persistent volume).
 
 Any failing step fails the build; reproduce locally with the same commands.
 
@@ -89,8 +92,8 @@ Versions: the release version is `version` in the root `package.json`. The works
 **Docker image.** `.github/workflows/publish-image.yml` builds and pushes `ghcr.io/morbakos/agent-questions` when a tag `vX.Y.Z` is pushed, or when started manually on an existing tag. It:
 
 1. checks that the ref is a tag and equals `v<version of package.json>`, and fails otherwise;
-2. builds the image without pushing, starts it and requires `/health` to answer;
-3. logs in to `ghcr.io` and pushes the tags `X.Y.Z`, `X.Y` and `latest`.
+2. builds the image once, with its final tags, without pushing, starts it and requires `/health` to answer;
+3. logs in to `ghcr.io` and pushes those same tags (`X.Y.Z`, `X.Y` and `latest`) with `docker push`: the image that is published is the one that was verified, not a rebuild.
 
 A suggested order (nothing enforces it except the tag check above):
 
