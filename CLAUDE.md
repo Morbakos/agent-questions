@@ -86,7 +86,7 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
       injectée par `define` (`__APP_VERSION__`, lue par `src/app/version.ts`, `0.0.0-dev` hors build). **Le paquet publié est le
       paquet racine** `@morbakos/agent-questions` (GitHub Packages) : **chaque dépendance d'exécution de `packages/server` doit
       figurer à la racine avec la même plage** (`scripts/check-deps.ts`, lancé par `build:server`). Publier : voir le README.
-- `packages/ui/` : Angular 21.1, composants standalone, signals, `OnPush`, SCSS, markdown avec `marked`.
+- `packages/ui/` : Angular 21.2, composants standalone, signals, `OnPush`, SCSS, markdown avec `marked`.
     - `src/app/core/` (`api.ts`, `app.config.ts`, `live.ts`), `src/app/shared/` (`markdown.pipe.ts`),
       `src/app/features/home/` (liste en attente rafraîchie toutes les 5 s, historique paginé par curseur `before`, 50 par
       page), `src/app/features/session/` (`session.ts`, `question.ts`, `session-state.ts` : état, brouillon, sondage ; une

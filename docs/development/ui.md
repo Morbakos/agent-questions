@@ -1,6 +1,6 @@
 # UI
 
-`packages/ui` is an Angular 21.1 single-page application: standalone components, signals, `OnPush` change detection, SCSS, and `marked` for markdown. UI strings are in French.
+`packages/ui` is an Angular 21.2 single-page application: standalone components, signals, `OnPush` change detection, SCSS, and `marked` for markdown. UI strings are in French.
 
 ## Structure
 
