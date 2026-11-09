@@ -11,14 +11,13 @@ The project is in early development (0.1.x). Only the latest released version re
 
 ## Reporting a vulnerability
 
-Vulnerabilities are reported **publicly**: there is no private reporting channel. Open an issue with the
-[Security vulnerability template](https://github.com/Morbakos/agent-questions/issues/new?template=security_report.yml).
+Report vulnerabilities **privately** through GitHub's private vulnerability reporting: open the
+[Security tab](https://github.com/Morbakos/agent-questions/security/advisories/new) of the repository and choose
+"Report a vulnerability". Only the maintainers can read the report until a fix is published.
 Include the affected version, the deployment profile (`local` or `server`), reproduction steps and the impact you see.
 Never include real credentials, tokens or personal data.
 
-Because reports are public, anyone can read them before a fix is released. If you prefer to give the maintainers a
-head start, you are welcome to describe the problem in general terms in the issue and keep the exploit details for
-later.
+Please do not open a public issue or pull request for a vulnerability.
 
 This is a small project maintained on a best-effort basis. We aim to acknowledge a report within a few days and to
 keep you informed, but we cannot promise fixed timelines.
