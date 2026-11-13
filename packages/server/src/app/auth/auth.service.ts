@@ -11,7 +11,7 @@ import { SessionRepository } from "@app/sessions/persistence/session.repository.
 import { AuthError } from "./auth-error.js";
 import { LoginThrottle } from "./login-throttle.js";
 
-const BAD_CREDENTIALS = "Identifiant ou mot de passe incorrect";
+const BAD_CREDENTIALS = "Incorrect username or password";
 
 /**
  * Credential verification and creation of the first administrator. Sessions, cookies, API tokens and CSRF are those of
@@ -64,15 +64,15 @@ export class AuthService implements OnApplicationBootstrap {
 		// Sessions predating accounts (local profile) go to the first administrator.
 		const adopted = await this.sessions.reassignOwner(LOCAL_USER_ID, admin.id);
 		if (adopted > 0) {
-			this.logger.log(`${adopted} session(s) existante(s) rattachée(s) à « ${username} ».`);
+			this.logger.log(`${adopted} existing session(s) assigned to "${username}".`);
 		}
 		if (configured) {
-			this.logger.log(`Compte administrateur « ${username} » créé.`);
+			this.logger.log(`Administrator account "${username}" created.`);
 		} else {
 			// Shown only once: only its hash is kept.
 			this.logger.warn(
-				`Compte administrateur créé : identifiant « ${username} », mot de passe « ${password} ». ` +
-					"Notez-le et changez-le après la première connexion (ou définissez AQ_ADMIN_PASSWORD avant le premier démarrage).",
+				`Administrator account created: username "${username}", password "${password}". ` +
+					"Write it down and change it after the first sign-in (or set AQ_ADMIN_PASSWORD before the first start).",
 			);
 		}
 	}

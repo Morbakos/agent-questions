@@ -8,7 +8,7 @@ export const OptionSchema = z.object({
 	recommended: z
 		.boolean()
 		.optional()
-		.describe("Mark the option(s) you recommend: shown with a 'Recommandé' badge. Not preselected."),
+		.describe("Mark the option(s) you recommend: shown with a 'Recommended' badge. Not preselected."),
 });
 
 /**

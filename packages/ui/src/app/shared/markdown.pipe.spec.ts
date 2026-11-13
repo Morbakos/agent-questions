@@ -6,7 +6,7 @@ describe("MarkdownPipe", () => {
 	const pipe = new MarkdownPipe();
 
 	it("converts markdown to HTML", () => {
-		expect(pipe.transform("**gras**")).toContain("<strong>gras</strong>");
+		expect(pipe.transform("**bold**")).toContain("<strong>bold</strong>");
 	});
 
 	it("handles code blocks and tables (GFM)", () => {
@@ -23,7 +23,7 @@ describe("MarkdownPipe", () => {
 	describe("content coming from an agent", () => {
 		it("emits no remote image (IP address leak), neither in markdown nor in raw HTML", () => {
 			expect(pipe.transform("![logo](https://tracker.example/p.png)")).not.toContain("<img");
-			expect(pipe.transform('avant <img src="https://tracker.example/p.png"> après')).not.toContain("<img");
+			expect(pipe.transform('before <img src="https://tracker.example/p.png"> after')).not.toContain("<img");
 		});
 
 		it("opens links in another tab, without opener", () => {
@@ -37,7 +37,7 @@ describe("MarkdownPipe", () => {
 			@Component({ template: `<div [innerHTML]="html"></div>`, changeDetection: ChangeDetectionStrategy.OnPush })
 			class Host {
 				html = pipe.transform(
-					'<script>window.pwned = 1</script><b onclick="window.pwned = 2">gras</b> [x](javascript:window.pwned=3) <a href="javascript:window.pwned=4">y</a>',
+					'<script>window.pwned = 1</script><b onclick="window.pwned = 2">bold</b> [x](javascript:window.pwned=3) <a href="javascript:window.pwned=4">y</a>',
 				);
 			}
 			const fixture = TestBed.createComponent(Host);

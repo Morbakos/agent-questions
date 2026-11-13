@@ -137,7 +137,7 @@ describe("unknown routes", () => {
 		]) {
 			const response = await inject({ method: "GET", url });
 			expect(response?.statusCode, url).toBe(404);
-			expect(response?.json()).toEqual({ error: "Route introuvable" });
+			expect(response?.json()).toEqual({ error: "Route not found" });
 		}
 	});
 });
@@ -156,7 +156,7 @@ describe("session decline", () => {
 
 describe("logs", () => {
 	it("masks an invitation token in the logged URL", () => {
-		expect(redactUrl("/auth/invitations/abcDEF123_-?x=1")).toBe("/auth/invitations/[masqué]?x=1");
+		expect(redactUrl("/auth/invitations/abcDEF123_-?x=1")).toBe("/auth/invitations/[masked]?x=1");
 		expect(redactUrl("/api/sessions")).toBe("/api/sessions");
 		expect(redactUrl(undefined)).toBeUndefined();
 	});
@@ -200,7 +200,7 @@ describe("exception filters on MCP calls", () => {
 	it("authentication denials too, without touching an HTTP response", async () => {
 		const { AuthError, AuthErrorFilter } = await import("@app/auth/auth-error.js");
 		const host = { getType: () => "mcp", switchToHttp: () => expect.unreachable() } as never;
-		expect(new AuthErrorFilter().catch(new AuthError(403, "Droits insuffisants"), host)).toMatchObject({
+		expect(new AuthErrorFilter().catch(new AuthError(403, "Insufficient permissions"), host)).toMatchObject({
 			isError: true,
 		});
 	});

@@ -12,7 +12,7 @@ import { MarkdownPipe } from "../../shared/markdown.pipe";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page stack">
-			<a routerLink="/admin/sessions">← Toutes les sessions</a>
+			<a routerLink="/admin/sessions">← All sessions</a>
 			@if (error(); as message) {
 				<p
 					class="error"
@@ -25,7 +25,7 @@ import { MarkdownPipe } from "../../shared/markdown.pipe";
 				<p
 					class="panel"
 					role="note">
-					Lecture seule. Session de <strong>{{ s.ownerUsername }}</strong
+					Read-only. Session of <strong>{{ s.ownerUsername }}</strong
 					>{{ stateText(s) }}
 				</p>
 				@for (question of s.questions; track question.id) {
@@ -51,7 +51,7 @@ import { MarkdownPipe } from "../../shared/markdown.pipe";
 								<blockquote>{{ answer.text }}</blockquote>
 							}
 						} @else {
-							<p class="muted">Pas de réponse.</p>
+							<p class="muted">No answer.</p>
 						}
 					</section>
 				}
@@ -69,15 +69,15 @@ export class AdminSessionDetailComponent implements OnInit {
 		try {
 			this.session.set(await this.api.adminSession(this.route.snapshot.paramMap.get("id") ?? ""));
 		} catch (error) {
-			this.error.set(errorMessage(error, "Session introuvable."));
+			this.error.set(errorMessage(error, "Session not found."));
 		}
 	}
 
 	protected stateText(session: AdminSessionView): string {
 		if (session.status === "declined") {
-			return session.declineReason ? ` : refusée (« ${session.declineReason} »).` : " : refusée.";
+			return session.declineReason ? `: declined ("${session.declineReason}").` : ": declined.";
 		}
-		return session.status === "answered" ? " : répondue." : " : en attente de réponse.";
+		return session.status === "answered" ? ": answered." : ": awaiting an answer.";
 	}
 
 	/** Answer given, or failing that the draft the owner is currently typing. */

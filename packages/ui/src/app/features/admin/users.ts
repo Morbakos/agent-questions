@@ -13,18 +13,18 @@ import { errorMessage } from "../../core/errors";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page stack">
-			<h1>Utilisateurs</h1>
+			<h1>Users</h1>
 
 			<section
 				class="stack"
 				aria-labelledby="new-title">
-				<h2 id="new-title">Inviter une personne</h2>
+				<h2 id="new-title">Invite someone</h2>
 				<form
 					class="row"
 					[formGroup]="form"
 					(ngSubmit)="create()">
 					<label class="stack tight grow">
-						Identifiant
+						Username
 						<input
 							class="field"
 							type="text"
@@ -36,23 +36,23 @@ import { errorMessage } from "../../core/errors";
 						<span
 							id="username-rules"
 							class="muted small">
-							3 à 40 caractères : lettres, chiffres, point, tiret, tiret bas.
+							3 to 40 characters: letters, digits, dot, hyphen, underscore.
 						</span>
 					</label>
 					<label class="stack tight">
-						Rôle
+						Role
 						<select
 							class="field"
 							formControlName="role">
-							<option value="member">Collaborateur</option>
-							<option value="admin">Administrateur</option>
+							<option value="member">Member</option>
+							<option value="admin">Administrator</option>
 						</select>
 					</label>
 					<button
 						type="submit"
 						class="btn primary"
 						[disabled]="form.invalid || busy()">
-						Créer et inviter
+						Create and invite
 					</button>
 				</form>
 				@if (invitation(); as invite) {
@@ -60,9 +60,9 @@ import { errorMessage } from "../../core/errors";
 						class="panel stack tight"
 						role="status">
 						<p>
-							Lien d'invitation pour <strong>{{ invite.user.username }}</strong> (valable jusqu'au
-							{{ invite.expiresAt | date: "dd/MM/yyyy à HH:mm" }}). Transmettez-le-lui : il ne sera plus
-							affiché.
+							Invitation link for <strong>{{ invite.user.username }}</strong> (valid until
+							{{ invite.expiresAt | date: "yyyy-MM-dd HH:mm" }}). Pass it on to them: it will not be shown
+							again.
 						</p>
 						<code class="secret">{{ invite.inviteUrl }}</code>
 					</div>
@@ -79,15 +79,15 @@ import { errorMessage } from "../../core/errors";
 			<section
 				class="stack"
 				aria-labelledby="list-title">
-				<h2 id="list-title">Comptes</h2>
+				<h2 id="list-title">Accounts</h2>
 				<div class="table-wrap">
 					<table class="table">
 						<thead>
 							<tr>
-								<th scope="col">Identifiant</th>
-								<th scope="col">Rôle</th>
-								<th scope="col">État</th>
-								<th scope="col">Créé le</th>
+								<th scope="col">Username</th>
+								<th scope="col">Role</th>
+								<th scope="col">Status</th>
+								<th scope="col">Created</th>
 								<th scope="col"><span class="visually-hidden">Actions</span></th>
 							</tr>
 						</thead>
@@ -95,56 +95,55 @@ import { errorMessage } from "../../core/errors";
 							@for (user of users(); track user.id) {
 								<tr>
 									<th scope="row">{{ user.username }}</th>
-									<td>{{ user.role === "admin" ? "Administrateur" : "Collaborateur" }}</td>
+									<td>{{ user.role === "admin" ? "Administrator" : "Member" }}</td>
 									<td>{{ status(user) }}</td>
-									<td>{{ user.createdAt | date: "dd/MM/yyyy" }}</td>
+									<td>{{ user.createdAt | date: "yyyy-MM-dd" }}</td>
 									<td>
 										<div class="row actions">
 											<button
 												type="button"
 												class="btn"
-												[attr.aria-label]="'Nouveau lien pour ' + user.username"
+												[attr.aria-label]="'New link for ' + user.username"
 												(click)="reinvite(user)">
-												Nouveau lien
+												New link
 											</button>
 											<button
 												type="button"
 												class="btn"
 												[attr.aria-label]="
-													(user.role === 'admin' ? 'Rétrograder ' : 'Promouvoir ') +
-													user.username
+													(user.role === 'admin' ? 'Demote ' : 'Promote ') + user.username
 												"
 												[disabled]="user.id === auth.me()?.userId"
 												(click)="setRole(user, user.role === 'admin' ? 'member' : 'admin')">
-												{{ user.role === "admin" ? "Rétrograder" : "Promouvoir" }}
+												{{ user.role === "admin" ? "Demote" : "Promote" }}
 											</button>
 											<button
 												type="button"
 												class="btn"
 												[class.danger]="!user.disabled"
 												[attr.aria-label]="
-													(user.disabled ? 'Réactiver ' : 'Désactiver ') + user.username
+													(user.disabled ? 'Enable ' : 'Disable ') + user.username
 												"
 												[disabled]="user.id === auth.me()?.userId && !user.disabled"
 												(click)="user.disabled ? setDisabled(user, false) : askDisable(user)">
-												{{ user.disabled ? "Réactiver" : "Désactiver" }}
+												{{ user.disabled ? "Enable" : "Disable" }}
 											</button>
 										</div>
 										@if (confirming() === user.id) {
 											<div
 												class="panel stack tight"
 												role="group"
-												[attr.aria-label]="'Confirmer la désactivation de ' + user.username">
+												[attr.aria-label]="'Confirm disabling ' + user.username">
 												<label class="row">
 													<input
 														type="checkbox"
 														[checked]="revokeTokens()"
 														(change)="revokeTokens.set(isChecked($event))" />
-													Supprimer aussi ses jetons d'API
+													Also delete their API tokens
 												</label>
 												<p class="muted small">
-													Sans cette case, ses jetons sont refusés tant que le compte est
-													désactivé, mais fonctionnent de nouveau à sa réactivation.
+													Without this box, their tokens are rejected while the account is
+													disabled, but work again once it is re-enabled.
 												</p>
 												<div class="row">
 													<button
@@ -152,13 +151,13 @@ import { errorMessage } from "../../core/errors";
 														class="btn danger"
 														[disabled]="busy()"
 														(click)="confirmDisable(user)">
-														Confirmer
+														Confirm
 													</button>
 													<button
 														type="button"
 														class="btn"
 														(click)="confirming.set(null)">
-														Annuler
+														Cancel
 													</button>
 												</div>
 											</div>
@@ -194,7 +193,7 @@ export class UsersComponent implements OnInit {
 	protected readonly busy = signal(false);
 	/** Account whose disabling awaits confirmation, or `null`. */
 	protected readonly confirming = signal<string | null>(null);
-	/** "Supprimer aussi ses jetons d'API" checkbox of the current confirmation. */
+	/** "Also delete their API tokens" checkbox of the current confirmation. */
 	protected readonly revokeTokens = signal(true);
 
 	async ngOnInit(): Promise<void> {
@@ -203,9 +202,9 @@ export class UsersComponent implements OnInit {
 
 	protected status(user: UserSummary): string {
 		if (user.disabled) {
-			return "Désactivé";
+			return "Disabled";
 		}
-		return user.pending ? "Invitation en attente" : "Actif";
+		return user.pending ? "Invitation pending" : "Active";
 	}
 
 	private async refresh(): Promise<void> {
@@ -240,7 +239,7 @@ export class UsersComponent implements OnInit {
 		this.invitation.set(null);
 		const done = await this.act(
 			async () => this.invitation.set(await this.api.createUser(username, role)),
-			"Création impossible.",
+			"Could not create the account.",
 		);
 		if (done) {
 			this.form.reset({ username: "", role: "member" });
@@ -249,15 +248,18 @@ export class UsersComponent implements OnInit {
 
 	protected async reinvite(user: UserSummary): Promise<void> {
 		this.invitation.set(null);
-		await this.act(async () => this.invitation.set(await this.api.reinvite(user.id)), "Invitation impossible.");
+		await this.act(
+			async () => this.invitation.set(await this.api.reinvite(user.id)),
+			"Could not create the invitation.",
+		);
 	}
 
 	protected async setRole(user: UserSummary, role: Role): Promise<void> {
-		await this.act(() => this.api.updateUser(user.id, { role }), "Changement de rôle impossible.");
+		await this.act(() => this.api.updateUser(user.id, { role }), "Could not change the role.");
 	}
 
 	protected async setDisabled(user: UserSummary, disabled: boolean): Promise<void> {
-		await this.act(() => this.api.updateUser(user.id, { disabled }), "Modification impossible.");
+		await this.act(() => this.api.updateUser(user.id, { disabled }), "Could not update the account.");
 	}
 
 	/** Opens the disabling confirmation for this account (token deletion is checked by default). */
@@ -269,7 +271,7 @@ export class UsersComponent implements OnInit {
 	protected async confirmDisable({ id }: UserSummary): Promise<void> {
 		const done = await this.act(
 			() => this.api.updateUser(id, { disabled: true, revokeTokens: this.revokeTokens() }),
-			"Modification impossible.",
+			"Could not update the account.",
 		);
 		if (done) {
 			this.confirming.set(null);

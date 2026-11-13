@@ -49,7 +49,7 @@ export class UiHub implements BeforeApplicationShutdown {
 			const set = this.clients.get(owner) ?? new Set<Client>();
 			set.add(client);
 			this.clients.set(owner, set);
-			subscriber.next({ comment: "connecté" });
+			subscriber.next({ comment: "connected" });
 			const last = this.lastAnnounce.get(owner);
 			if (last && Date.now() - last.at < REPLAY_MS) {
 				subscriber.next(toMessage(last.event));

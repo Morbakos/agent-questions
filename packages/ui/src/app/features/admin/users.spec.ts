@@ -47,10 +47,10 @@ describe("UsersComponent", () => {
 
 	it("lists the accounts with their role and state", async () => {
 		const { el } = await render();
-		expect(rowOf(el, "admin").textContent).toContain("Administrateur");
-		expect(rowOf(el, "admin").textContent).toContain("Actif");
-		expect(rowOf(el, "bob").textContent).toContain("Collaborateur");
-		expect(rowOf(el, "bob").textContent).toContain("Invitation en attente");
+		expect(rowOf(el, "admin").textContent).toContain("Administrator");
+		expect(rowOf(el, "admin").textContent).toContain("Active");
+		expect(rowOf(el, "bob").textContent).toContain("Member");
+		expect(rowOf(el, "bob").textContent).toContain("Invitation pending");
 	});
 
 	it("creates an account and shows the invitation link to pass on", async () => {
@@ -62,7 +62,7 @@ describe("UsersComponent", () => {
 		const { fixture, el } = await render();
 		typeInto(el, 'input[formControlName="username"]', "bob");
 		fixture.detectChanges();
-		button(el, "Créer et inviter").click();
+		button(el, "Create and invite").click();
 		await fixture.whenStable();
 		fixture.detectChanges();
 		expect(api.createUser).toHaveBeenCalledWith("bob", "member");
@@ -73,24 +73,24 @@ describe("UsersComponent", () => {
 		const { fixture, el } = await render();
 		typeInto(el, 'input[formControlName="username"]', "a b");
 		fixture.detectChanges();
-		expect(button(el, "Créer et inviter").disabled).toBe(true);
+		expect(button(el, "Create and invite").disabled).toBe(true);
 	});
 
 	it("generates a new link, promotes and disables an account", async () => {
-		api.reinvite.mockResolvedValue({ user: bob, inviteUrl: "https://q.example/invite/neuf", expiresAt: 1 });
+		api.reinvite.mockResolvedValue({ user: bob, inviteUrl: "https://q.example/invite/fresh", expiresAt: 1 });
 		api.updateUser.mockResolvedValue(bob);
 		const { fixture, el } = await render();
-		button(rowOf(el, "bob"), "Nouveau lien").click();
+		button(rowOf(el, "bob"), "New link").click();
 		await fixture.whenStable();
 		expect(api.reinvite).toHaveBeenCalledWith("u2");
 
-		button(rowOf(el, "bob"), "Promouvoir").click();
+		button(rowOf(el, "bob"), "Promote").click();
 		await fixture.whenStable();
 		expect(api.updateUser).toHaveBeenCalledWith("u2", { role: "admin" });
 
-		button(rowOf(el, "bob"), "Désactiver").click();
+		button(rowOf(el, "bob"), "Disable").click();
 		fixture.detectChanges();
-		button(rowOf(el, "bob"), "Confirmer").click();
+		button(rowOf(el, "bob"), "Confirm").click();
 		await fixture.whenStable();
 		expect(api.updateUser).toHaveBeenCalledWith("u2", { disabled: true, revokeTokens: true });
 	});
@@ -98,25 +98,25 @@ describe("UsersComponent", () => {
 	it("asks for confirmation before disabling, with token deletion checked by default", async () => {
 		api.updateUser.mockResolvedValue(bob);
 		const { fixture, el } = await render();
-		button(rowOf(el, "bob"), "Désactiver").click();
+		button(rowOf(el, "bob"), "Disable").click();
 		fixture.detectChanges();
 		expect(api.updateUser).not.toHaveBeenCalled();
 		const box = rowOf(el, "bob").querySelector<HTMLInputElement>('input[type="checkbox"]');
 		expect(box?.checked).toBe(true);
-		expect(rowOf(el, "bob").textContent).toContain("Supprimer aussi ses jetons d'API");
+		expect(rowOf(el, "bob").textContent).toContain("Also delete their API tokens");
 
 		box?.click();
 		fixture.detectChanges();
-		button(rowOf(el, "bob"), "Confirmer").click();
+		button(rowOf(el, "bob"), "Confirm").click();
 		await fixture.whenStable();
 		expect(api.updateUser).toHaveBeenCalledWith("u2", { disabled: true, revokeTokens: false });
 	});
 
 	it("cancels the disabling without sending anything", async () => {
 		const { fixture, el } = await render();
-		button(rowOf(el, "bob"), "Désactiver").click();
+		button(rowOf(el, "bob"), "Disable").click();
 		fixture.detectChanges();
-		button(rowOf(el, "bob"), "Annuler").click();
+		button(rowOf(el, "bob"), "Cancel").click();
 		fixture.detectChanges();
 		expect(api.updateUser).not.toHaveBeenCalled();
 		expect(rowOf(el, "bob").querySelector('input[type="checkbox"]')).toBeNull();
@@ -126,34 +126,34 @@ describe("UsersComponent", () => {
 		api.users.mockResolvedValue([user({}), user({ id: "u2", username: "bob", role: "member", disabled: true })]);
 		api.updateUser.mockResolvedValue(bob);
 		const { fixture, el } = await render();
-		button(rowOf(el, "bob"), "Réactiver").click();
+		button(rowOf(el, "bob"), "Enable").click();
 		await fixture.whenStable();
 		expect(api.updateUser).toHaveBeenCalledWith("u2", { disabled: false });
 	});
 
 	it("prevents an admin from disabling themselves", async () => {
 		const { el } = await render();
-		expect(button(rowOf(el, "admin"), "Désactiver").disabled).toBe(true);
-		expect(button(rowOf(el, "bob"), "Désactiver").disabled).toBe(false);
+		expect(button(rowOf(el, "admin"), "Disable").disabled).toBe(true);
+		expect(button(rowOf(el, "bob"), "Disable").disabled).toBe(false);
 	});
 
 	it("shows the server error (for example, last admin)", async () => {
 		api.updateUser.mockRejectedValue(
-			new HttpErrorResponse({ status: 409, error: { error: "Il doit rester au moins un administrateur actif" } }),
+			new HttpErrorResponse({ status: 409, error: { error: "At least one active administrator must remain" } }),
 		);
 		api.users.mockResolvedValue([user({}), user({ id: "u3", username: "carol", role: "admin" })]);
 		const { fixture, el } = await render();
-		button(rowOf(el, "carol"), "Rétrograder").click();
+		button(rowOf(el, "carol"), "Demote").click();
 		await fixture.whenStable();
 		fixture.detectChanges();
-		expect(el.querySelector('[role="alert"]')?.textContent).toContain("au moins un administrateur");
+		expect(el.querySelector('[role="alert"]')?.textContent).toContain("At least one active administrator");
 	});
 
 	it("allows neither self-demotion nor self-disabling, and names each button after its account", async () => {
 		const { el } = await render();
 		const own = rowOf(el, "admin");
-		expect(button(own, "Rétrograder").disabled).toBe(true);
-		expect(button(own, "Désactiver").disabled).toBe(true);
-		expect(button(rowOf(el, "bob"), "Promouvoir").getAttribute("aria-label")).toBe("Promouvoir bob");
+		expect(button(own, "Demote").disabled).toBe(true);
+		expect(button(own, "Disable").disabled).toBe(true);
+		expect(button(rowOf(el, "bob"), "Promote").getAttribute("aria-label")).toBe("Promote bob");
 	});
 });

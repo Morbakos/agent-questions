@@ -133,7 +133,7 @@ test("two simultaneous launchers share a single server", async () => {
 	expect(first).toBeDefined();
 	const created = await a.callTool({
 		name: "ask_user",
-		arguments: { title: "Partagé", questions: QUESTIONS },
+		arguments: { title: "Shared", questions: QUESTIONS },
 	});
 	const { session_id } = JSON.parse(textOf(created)) as { session_id: string };
 	const seen = await b.callTool({ name: "get_answers", arguments: { session_id } });
@@ -143,12 +143,12 @@ test("two simultaneous launchers share a single server", async () => {
 test("end to end over stdio: ask_user, answer through the API, get_answers", async () => {
 	const ctx = await freshEnv();
 	const client = await connect(ctx);
-	const asked = await client.callTool({ name: "ask_user", arguments: { title: "Base", questions: QUESTIONS } });
+	const asked = await client.callTool({ name: "ask_user", arguments: { title: "Database", questions: QUESTIONS } });
 	const { session_id } = JSON.parse(textOf(asked)) as { session_id: string };
 	const answer = await fetch(`http://127.0.0.1:${ctx.port}/api/sessions/${session_id}/answers`, {
 		method: "POST",
 		headers: { "content-type": "application/json" },
-		body: JSON.stringify({ base: { selected: ["sqlite"], text: "" } }),
+		body: JSON.stringify({ database: { selected: ["sqlite"], text: "" } }),
 	});
 	expect(answer.ok).toBe(true);
 	const result = await client.callTool({ name: "get_answers", arguments: { session_id } });

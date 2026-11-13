@@ -71,7 +71,7 @@ describe("findOrCreate", () => {
 		const first = await create();
 		const other = await store.findOrCreate(OWNER, {
 			title: "Titre",
-			questions: [singleQuestion({ prompt: "Autre formulation" }), textQuestion()],
+			questions: [singleQuestion({ prompt: "Other wording" }), textQuestion()],
 		});
 		expect(other.session.id).not.toBe(first.id);
 	});
@@ -121,9 +121,9 @@ describe("submit and decline", () => {
 
 	it("stores a decline with its reason", async () => {
 		const s = await create();
-		const done = await store.decline(OWNER, s.id, "pas le temps");
+		const done = await store.decline(OWNER, s.id, "no time");
 		expect(done.status).toBe("declined");
-		expect(done.declineReason).toBe("pas le temps");
+		expect(done.declineReason).toBe("no time");
 	});
 
 	it("rejects any change to an already closed session (409)", async () => {
@@ -196,7 +196,7 @@ describe("updateQuestions", () => {
 		];
 		const updated = await store.updateQuestions(OWNER, s.id, undefined, [singleQuestion({ options })]);
 		expect(updated.draft).toEqual({ choix: { selected: ["b"], text: "", notes: { b: "note B" } } });
-		// The kept draft must pass the submit validation (no "Note sans option choisie").
+		// The kept draft must pass the submit validation (no "Note for unselected option").
 		const submitted = await store.submit(OWNER, s.id, { choix: updated.draft.choix ?? { selected: [], text: "" } });
 		expect(submitted.status).toBe("answered");
 	});
@@ -284,12 +284,14 @@ describe("pending sessions quota", () => {
 		for (let i = 0; i < MAX_PENDING_PER_OWNER; i++) {
 			await store.findOrCreate(OWNER, { title: `S${i}`, questions: [textQuestion()] });
 		}
-		await expect(store.findOrCreate(OWNER, { title: "de trop", questions: [textQuestion()] })).rejects.toThrowError(
-			expect.objectContaining({ status: 409 }),
-		);
+		await expect(
+			store.findOrCreate(OWNER, { title: "one too many", questions: [textQuestion()] }),
+		).rejects.toThrowError(expect.objectContaining({ status: 409 }));
 		// The same questions find the existing session: no new session, hence no rejection.
 		expect((await store.findOrCreate(OWNER, { title: "S0", questions: [textQuestion()] })).created).toBe(false);
-		expect((await store.findOrCreate(OTHER, { title: "de trop", questions: [textQuestion()] })).created).toBe(true);
+		expect((await store.findOrCreate(OTHER, { title: "one too many", questions: [textQuestion()] })).created).toBe(
+			true,
+		);
 	});
 });
 
@@ -376,7 +378,7 @@ describe("listClosed", () => {
 
 	it("returns only closed sessions, most recent first", async () => {
 		const old = await closeAt("ancienne", 1000);
-		const recent = await closeAt("récente", 2000);
+		const recent = await closeAt("recent", 2000);
 		await create("en attente");
 		const page = await store.listClosed(OWNER, 10);
 		expect(page.items.map((s) => s.id)).toEqual([recent.id, old.id]);

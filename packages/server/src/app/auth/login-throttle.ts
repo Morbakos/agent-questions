@@ -24,7 +24,7 @@ export class LoginThrottle {
 	/** Throws 429 if either key (username, address) has failed too often. */
 	check(keys: string[], now = Date.now()): void {
 		if (keys.some((key) => this.recent(key, now).length >= MAX_FAILURES)) {
-			throw new HttpError(429, "Trop de tentatives de connexion. Réessayez dans quelques minutes.");
+			throw new HttpError(429, "Too many sign-in attempts. Try again in a few minutes.");
 		}
 	}
 

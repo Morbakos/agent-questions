@@ -71,8 +71,8 @@ test("end to end with MCP Inspector: ask_user waits, the UI's answer wakes the c
 		method: "POST",
 		headers: { "content-type": "application/json" },
 		body: JSON.stringify({
-			base: { selected: ["postgres"], text: "" },
-			pourquoi: { selected: [], text: "extensions" },
+			database: { selected: ["postgres"], text: "" },
+			why: { selected: [], text: "extensions" },
 		}),
 	});
 	expect(answered.status).toBe(200);
@@ -84,8 +84,8 @@ test("end to end with MCP Inspector: ask_user waits, the UI's answer wakes the c
 	expect(json).toMatchObject({
 		status: "answered",
 		answers: [
-			{ question_id: "base", selected: [{ id: "postgres", label: "PostgreSQL" }] },
-			{ question_id: "pourquoi", text: "extensions" },
+			{ question_id: "database", selected: [{ id: "postgres", label: "PostgreSQL" }] },
+			{ question_id: "why", text: "extensions" },
 		],
 	});
 });
@@ -94,7 +94,7 @@ test('MCP Inspector: an unanswered call returns "pending", get_answers resumes t
 	const first = await inspector(
 		server,
 		"tools/call",
-		toolCall("ask_user", { title: "Sans réponse", questions: QUESTIONS, wait_seconds: 1 }),
+		toolCall("ask_user", { title: "No answer", questions: QUESTIONS, wait_seconds: 1 }),
 	).done;
 	expect(first.code, first.stderr).toBe(0);
 	const pending = toolResult(first.stdout).json;

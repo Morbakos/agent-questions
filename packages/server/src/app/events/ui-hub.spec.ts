@@ -36,7 +36,7 @@ function open(owner = U, sessionKey: string | null = null, expiresAt?: Date) {
 describe("stream", () => {
 	it("announces the connection with a comment, then a keep-alive comment every 15 s", () => {
 		const tab = open();
-		expect(tab.events).toEqual([{ comment: "connecté" }]);
+		expect(tab.events).toEqual([{ comment: "connected" }]);
 		vi.advanceTimersByTime(15_000);
 		expect(tab.events.at(-1)).toEqual({ comment: "keepalive" });
 	});

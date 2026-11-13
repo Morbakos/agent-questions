@@ -2,12 +2,12 @@ import type { Question, SessionSummary, SessionView } from "@agent-questions/sha
 import { ApiService } from "../app/core/api";
 
 export const singleQuestion = (overrides: Partial<Question> = {}): Question => ({
-	id: "choix",
-	header: "Choix",
-	prompt: "Lequel **choisir** ?",
+	id: "choice",
+	header: "Choice",
+	prompt: "Which one to **choose**?",
 	type: "single",
 	options: [
-		{ id: "a", label: "Option A", description: "La première", recommended: true },
+		{ id: "a", label: "Option A", description: "The first", recommended: true },
 		{ id: "b", label: "Option B" },
 	],
 	...overrides,
@@ -15,7 +15,7 @@ export const singleQuestion = (overrides: Partial<Question> = {}): Question => (
 
 export const multiQuestion = (overrides: Partial<Question> = {}): Question => ({
 	id: "multi",
-	prompt: "Lesquels ?",
+	prompt: "Which ones?",
 	type: "multi",
 	options: [
 		{ id: "x", label: "X" },
@@ -25,16 +25,16 @@ export const multiQuestion = (overrides: Partial<Question> = {}): Question => ({
 });
 
 export const textQuestion = (overrides: Partial<Question> = {}): Question => ({
-	id: "libre",
-	header: "Libre",
-	prompt: "Pourquoi ?",
+	id: "free",
+	header: "Free",
+	prompt: "Why?",
 	type: "text",
 	...overrides,
 });
 
 export const sessionView = (overrides: Partial<SessionView> = {}): SessionView => ({
 	id: "s1",
-	title: "Ma session",
+	title: "My session",
 	status: "pending",
 	revision: 0,
 	questions: [singleQuestion(), textQuestion()],
@@ -46,7 +46,7 @@ export const sessionView = (overrides: Partial<SessionView> = {}): SessionView =
 
 export const sessionSummary = (overrides: Partial<SessionSummary> = {}): SessionSummary => ({
 	id: "s1",
-	title: "Ma session",
+	title: "My session",
 	status: "pending",
 	createdAt: new Date(2026, 9, 28, 14, 30).getTime(),
 	answeredAt: null,

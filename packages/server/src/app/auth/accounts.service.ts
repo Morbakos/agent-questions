@@ -56,7 +56,7 @@ export class AccountsService {
 	 */
 	requireServer(): void {
 		if (this.config.deploymentMode !== "server") {
-			throw new HttpError(404, "Les comptes ne sont disponibles qu'en profil server");
+			throw new HttpError(404, "Accounts are only available in the server profile");
 		}
 	}
 
@@ -102,7 +102,7 @@ export class AccountsService {
 		const user = await this.mustGet(userId);
 		const staysAdmin = (patch.role ?? user.role) === "admin" && !(patch.disabled ?? user.disabled);
 		if (user.role === "admin" && !user.disabled && !staysAdmin && (await this.users.enabledAdminCount()) <= 1) {
-			throw new HttpError(409, "Il doit rester au moins un administrateur actif");
+			throw new HttpError(409, "At least one active administrator must remain");
 		}
 		await this.users.update(userId, patch);
 		if (patch.disabled) {
@@ -119,7 +119,7 @@ export class AccountsService {
 	private async mustGet(userId: string): Promise<UserRecord> {
 		const user = await this.users.get(userId);
 		if (!user) {
-			throw new HttpError(404, "Compte introuvable");
+			throw new HttpError(404, "Account not found");
 		}
 		return user;
 	}
@@ -150,7 +150,7 @@ export class AccountsService {
 		this.requireServer();
 		const user = await this.users.findInvitation(hashSecret(token));
 		if (!user || user.disabled) {
-			throw new HttpError(404, "Invitation invalide ou expirée");
+			throw new HttpError(404, "Invalid or expired invitation");
 		}
 		return user;
 	}
@@ -173,7 +173,7 @@ export class AccountsService {
 		const key = `password:${user.id}`;
 		this.throttle.attempt([key]);
 		if (!(await this.hasher.verify(current, user.passwordHash))) {
-			throw new AuthError(403, "Mot de passe actuel incorrect");
+			throw new AuthError(403, "Current password is incorrect");
 		}
 		this.throttle.succeed([key]);
 		await this.users.update(user.id, { passwordHash: await this.hasher.hash(next) });
@@ -194,7 +194,7 @@ export class AccountsService {
 	async createToken(principal: Principal, name: string): Promise<CreatedApiToken> {
 		this.requireServer();
 		if ((await this.users.listApiTokens(principal.userId)).length >= MAX_TOKENS_PER_USER) {
-			throw new HttpError(409, `Limite de ${MAX_TOKENS_PER_USER} jetons atteinte : révoquez-en un.`);
+			throw new HttpError(409, `Token limit reached (${MAX_TOKENS_PER_USER}): revoke one.`);
 		}
 		const { key, id, hash } = this.apiKeys.generate();
 		const record = await this.users.createApiToken(principal.userId, name, {
@@ -209,7 +209,7 @@ export class AccountsService {
 	async revokeToken(principal: Principal, id: string): Promise<void> {
 		this.requireServer();
 		if (!(await this.users.deleteApiToken(id, principal.userId))) {
-			throw new HttpError(404, "Jeton introuvable");
+			throw new HttpError(404, "Token not found");
 		}
 	}
 }

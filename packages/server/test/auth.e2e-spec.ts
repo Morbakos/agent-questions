@@ -99,7 +99,7 @@ describe("first administrator bootstrap", () => {
 		const warn = vi.spyOn(Logger.prototype, "warn").mockImplementation(() => undefined);
 		const { app } = await start(serverConfig({ admin: { username: "root", password: null } }));
 		const message = warn.mock.calls.map((args) => String(args[0])).find((text) => text.includes("root")) ?? "";
-		const generated = /mot de passe « ([^»\s]+) »/.exec(message)?.[1];
+		const generated = /password "([^"\s]+)"/.exec(message)?.[1];
 		expect(generated).toBeTruthy();
 		await login(app, "root", generated ?? "");
 	});
@@ -176,7 +176,7 @@ describe("sign-in", () => {
 			const response = await call(app, { method: "GET", url });
 			expect(response.statusCode, url).toBe(404);
 			expect(response.headers["www-authenticate"], url).toBeUndefined();
-			expect(response.json()).toEqual({ error: "Route introuvable" });
+			expect(response.json()).toEqual({ error: "Route not found" });
 		}
 	});
 
@@ -185,12 +185,12 @@ describe("sign-in", () => {
 		const wrong = await call(app, {
 			method: "POST",
 			url: "/auth/login",
-			payload: { username: "admin", password: "faux-mot-de-passe" },
+			payload: { username: "admin", password: "bad-password" },
 		});
 		const unknown = await call(app, {
 			method: "POST",
 			url: "/auth/login",
-			payload: { username: "inconnu", password: "faux-mot-de-passe" },
+			payload: { username: "unknown", password: "bad-password" },
 		});
 		expect(wrong.statusCode).toBe(401);
 		expect(unknown.statusCode).toBe(401);
@@ -293,17 +293,17 @@ describe("sign-in", () => {
 		await call(app, {
 			method: "POST",
 			url: "/auth/login",
-			payload: { username: "admin", password: "secret-tente" },
+			payload: { username: "admin", password: "attempted-secret" },
 		});
 		await call(app, {
 			method: "GET",
 			url: "/api/sessions",
-			headers: { cookie: "sid=cookie-secret", ...bearer("aq_jeton-secret") },
+			headers: { cookie: "sid=cookie-secret", ...bearer("aq_token-secret") },
 		});
 		await call(app, { method: "GET", url: "/api/sessions", headers: { cookie: "sid=cookie-secret" } });
 		const logged = warn.mock.calls.map((args) => String(args[0])).join("\n");
 		expect(logged).toContain("401");
-		for (const secret of ["secret-tente", "cookie-secret", "jeton-secret", ADMIN_PASSWORD]) {
+		for (const secret of ["attempted-secret", "cookie-secret", "token-secret", ADMIN_PASSWORD]) {
 			expect(logged).not.toContain(secret);
 		}
 	});
@@ -574,7 +574,7 @@ describe("user account", () => {
 			method: "POST",
 			url: "/api/account/password",
 			headers: first,
-			payload: { current: "pas-le-bon-mot-de-passe", next: "nouveau-mot-de-passe" },
+			payload: { current: "wrong-password", next: "new-password" },
 		});
 		expect(wrong.statusCode).toBe(403);
 		const weak = await call(app, {
@@ -588,7 +588,7 @@ describe("user account", () => {
 			method: "POST",
 			url: "/api/account/password",
 			headers: first,
-			payload: { current: ADMIN_PASSWORD, next: "nouveau-mot-de-passe" },
+			payload: { current: ADMIN_PASSWORD, next: "new-password" },
 		});
 		expect(changed.statusCode).toBe(200);
 
@@ -603,7 +603,7 @@ describe("user account", () => {
 				})
 			).statusCode,
 		).toBe(401);
-		await login(app, "admin", "nouveau-mot-de-passe");
+		await login(app, "admin", "new-password");
 	});
 
 	it("creates personal tokens: value shown once, stored hashed, usable as Bearer on the API and on MCP", async () => {
@@ -690,7 +690,7 @@ describe("user account", () => {
 
 	it("rejects malformed tokens or tokens of another scheme", async () => {
 		const { app } = await start();
-		for (const authorization of ["Bearer pas-un-jeton", "Bearer aq_inconnu", "Basic YWRtaW46c2VjcmV0", "Bearer"]) {
+		for (const authorization of ["Bearer not-a-token", "Bearer aq_unknown", "Basic YWRtaW46c2VjcmV0", "Bearer"]) {
 			const response = await call(app, { method: "GET", url: "/api/sessions", headers: { authorization } });
 			expect(response.statusCode, authorization).toBe(401);
 		}
@@ -701,7 +701,7 @@ describe("user account", () => {
 		const admin = await login(app);
 		const { headers: bob } = await createMember(app, admin);
 		const id = (
-			await call(app, { method: "POST", url: "/api/account/tokens", headers: admin, payload: { name: "à moi" } })
+			await call(app, { method: "POST", url: "/api/account/tokens", headers: admin, payload: { name: "mine" } })
 		).json<CreatedApiToken>().id;
 		expect((await call(app, { method: "DELETE", url: `/api/account/tokens/${id}`, headers: bob })).statusCode).toBe(
 			404,
@@ -832,7 +832,7 @@ describe("account hardening", () => {
 				method: "POST",
 				url: "/api/account/password",
 				headers: admin,
-				payload: { current: "pas-le-bon-mot-de-passe", next: "nouveau-mot-de-passe" },
+				payload: { current: "wrong-password", next: "new-password" },
 			});
 		for (let i = 0; i < 10; i++) {
 			expect((await attempt()).statusCode).toBe(403);

@@ -27,6 +27,6 @@ export class UnknownRouteController {
 		"messages/*",
 	])
 	notFound(): never {
-		throw new HttpError(404, "Route introuvable");
+		throw new HttpError(404, "Route not found");
 	}
 }

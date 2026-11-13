@@ -22,7 +22,7 @@ export class RolesGuard implements CanActivate {
 		}
 		const principal = context.switchToHttp().getRequest<{ user?: Principal }>().user;
 		if (!principal || !roles.includes(principal.role)) {
-			throw new AuthError(403, "Droits insuffisants");
+			throw new AuthError(403, "Insufficient permissions");
 		}
 		return true;
 	}

@@ -13,22 +13,22 @@ import { LiveService } from "./core/live";
 			<a
 				routerLink="/"
 				class="brand"
-				>Questions de l'agent</a
+				>Agent questions</a
 			>
 			@if (auth.isServer()) {
 				<nav
 					class="user"
-					aria-label="Compte">
+					aria-label="Account">
 					@if (auth.isAdmin()) {
 						<a routerLink="/admin/sessions">Sessions</a>
-						<a routerLink="/admin/users">Utilisateurs</a>
+						<a routerLink="/admin/users">Users</a>
 					}
 					<a routerLink="/account">{{ auth.me()?.username }}</a>
 					<button
 						type="button"
 						class="btn quiet"
 						(click)="auth.logout()">
-						Se déconnecter
+						Sign out
 					</button>
 				</nav>
 			}
@@ -38,20 +38,20 @@ import { LiveService } from "./core/live";
 				class="toast"
 				role="status">
 				<span
-					>Nouvelles questions : <strong>{{ offer.title }}</strong></span
+					>New questions: <strong>{{ offer.title }}</strong></span
 				>
 				<span class="toast-actions">
 					<button
 						type="button"
 						class="btn primary"
 						(click)="live.open()">
-						Y aller
+						Go there
 					</button>
 					<button
 						type="button"
 						class="btn quiet"
 						(click)="live.dismiss()">
-						Ignorer
+						Dismiss
 					</button>
 				</span>
 			</div>

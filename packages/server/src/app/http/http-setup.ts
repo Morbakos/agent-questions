@@ -71,11 +71,11 @@ export async function configureHttp(app: NestFastifyApplication, config: AppConf
 	// come from `app.enableCors()` (`application.ts`).
 	fastify.addHook("onRequest", async (request, reply) => {
 		if (!hosts.has(request.headers.host ?? "")) {
-			return reply.code(403).send({ error: "Host non autorisé" });
+			return reply.code(403).send({ error: "Host not allowed" });
 		}
 		const origin = request.headers.origin;
 		if (origin && !origins.has(origin)) {
-			return reply.code(403).send({ error: "Origin non autorisée" });
+			return reply.code(403).send({ error: "Origin not allowed" });
 		}
 	});
 }

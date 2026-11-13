@@ -15,7 +15,7 @@ export function setRuntimeConfig(config: AppConfig): void {
 /** @throws Error if `setRuntimeConfig` has not been called yet (the module importing this was loaded too early). */
 export function getRuntimeConfig(): AppConfig {
 	if (!current) {
-		throw new Error("Configuration non initialisée : appeler setRuntimeConfig() avant d'importer ce module.");
+		throw new Error("Configuration not initialized: call setRuntimeConfig() before importing this module.");
 	}
 	return current;
 }

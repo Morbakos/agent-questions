@@ -19,7 +19,7 @@ test("the UI renders with its styles and CSP, without console errors", async ({ 
 
 	const response = await page.goto(server.url);
 	expect(response?.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
-	await expect(page.getByRole("heading", { name: "Questions en attente" })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Pending questions" })).toBeVisible();
 
 	// If the CSP blocked the deferred loading of the stylesheet, it would stay at `media="print"`.
 	const media = await page.locator('link[rel="stylesheet"]').first().getAttribute("media");
@@ -33,20 +33,20 @@ test("end to end: the agent asks a question, the user answers in the UI, the age
 	page,
 }) => {
 	// The agent calls ask_user and waits (blocking call, like a real MCP client).
-	const agent = callTool(server, "ask_user", { title: "Choix de la base", questions: QUESTIONS, wait_seconds: 40 });
+	const agent = callTool(server, "ask_user", { title: "Database choice", questions: QUESTIONS, wait_seconds: 40 });
 
 	// The tab follows the agent: it lands on the form by itself (announcement replayed to the connecting tab).
 	await page.goto(server.url);
-	await expect(page.getByRole("heading", { name: "Choix de la base" })).toBeVisible();
-	await expect(page.getByText("base de données")).toBeVisible();
-	await expect(page.getByText("(facultatif)")).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Database choice" })).toBeVisible();
+	await expect(page.getByText("Which database?")).toBeVisible();
+	await expect(page.getByText("(optional)")).toBeVisible();
 
 	// The send button stays disabled while a required answer is missing.
-	const send = page.getByRole("button", { name: "Envoyer à l'agent" });
+	const send = page.getByRole("button", { name: "Send to the agent" });
 	await expect(send).toBeDisabled();
 	await page.getByRole("radio", { name: "PostgreSQL" }).check();
-	// The choice question also offers an "Autre" field (by default): we target the free-text question.
-	await page.locator("app-question", { hasText: "Pourquoi ?" }).getByRole("textbox").fill("pour les extensions");
+	// The choice question also offers an "Other" field (by default): we target the free-text question.
+	await page.locator("app-question", { hasText: "Why?" }).getByRole("textbox").fill("for the extensions");
 	await expect(send).toBeEnabled();
 	await send.click();
 
@@ -55,61 +55,61 @@ test("end to end: the agent asks a question, the user answers in the UI, the age
 	expect(result.json).toMatchObject({
 		status: "answered",
 		answers: [
-			{ question_id: "base", selected: [{ id: "postgres", label: "PostgreSQL" }] },
-			{ question_id: "pourquoi", text: "pour les extensions" },
+			{ question_id: "database", selected: [{ id: "postgres", label: "PostgreSQL" }] },
+			{ question_id: "why", text: "for the extensions" },
 		],
 	});
 });
 
 test("the user adds a note to a chosen option, and the agent receives the note with the option", async ({ page }) => {
-	const agent = callTool(server, "ask_user", { title: "Avec précision", questions: QUESTIONS, wait_seconds: 40 });
+	const agent = callTool(server, "ask_user", { title: "With a note", questions: QUESTIONS, wait_seconds: 40 });
 	await page.goto(server.url);
-	await expect(page.getByRole("heading", { name: "Avec précision" })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "With a note" })).toBeVisible();
 
-	const question = page.locator("app-question", { hasText: "base de données" });
+	const question = page.locator("app-question", { hasText: "Which database?" });
 	// No note field is offered until the option is checked.
-	await expect(question.getByRole("button", { name: "Ajouter une précision" })).toHaveCount(0);
+	await expect(question.getByRole("button", { name: "Add a note" })).toHaveCount(0);
 	await question.getByRole("radio", { name: "PostgreSQL" }).check();
-	await question.getByRole("button", { name: "Ajouter une précision" }).click();
-	await question.getByRole("textbox", { name: "Précision sur PostgreSQL" }).fill("version 16 minimum");
-	await page.locator("app-question", { hasText: "Pourquoi ?" }).getByRole("textbox").fill("extensions");
-	await page.getByRole("button", { name: "Envoyer à l'agent" }).click();
+	await question.getByRole("button", { name: "Add a note" }).click();
+	await question.getByRole("textbox", { name: "Note on PostgreSQL" }).fill("version 16 minimum");
+	await page.locator("app-question", { hasText: "Why?" }).getByRole("textbox").fill("extensions");
+	await page.getByRole("button", { name: "Send to the agent" }).click();
 
 	const result = await agent;
 	expect(result.json).toMatchObject({
 		status: "answered",
-		answers: [{ question_id: "base", selected: [{ id: "postgres", note: "version 16 minimum" }] }, {}],
+		answers: [{ question_id: "database", selected: [{ id: "postgres", note: "version 16 minimum" }] }, {}],
 	});
 });
 
 test("the user can decline to answer, and the agent knows it", async ({ page }) => {
-	const agent = callTool(server, "ask_user", { title: "À refuser", questions: QUESTIONS, wait_seconds: 40 });
+	const agent = callTool(server, "ask_user", { title: "To decline", questions: QUESTIONS, wait_seconds: 40 });
 	await page.goto(server.url);
-	await expect(page.getByRole("heading", { name: "À refuser" })).toBeVisible();
-	await page.getByRole("button", { name: "Ne pas répondre" }).click();
-	await page.getByLabel(/Pourquoi ne pas répondre/).fill("pas maintenant");
-	await page.getByRole("button", { name: "Confirmer le refus" }).click();
-	expect((await agent).json).toMatchObject({ status: "declined", reason: "pas maintenant" });
+	await expect(page.getByRole("heading", { name: "To decline" })).toBeVisible();
+	await page.getByRole("button", { name: "Decline" }).click();
+	await page.getByLabel(/Why not answer/).fill("not now");
+	await page.getByRole("button", { name: "Confirm decline" }).click();
+	expect((await agent).json).toMatchObject({ status: "declined", reason: "not now" });
 });
 
 test("an open tab follows the agent: new questions arrive without reloading", async ({ page }) => {
 	await page.goto(server.url);
-	await expect(page.getByRole("heading", { name: "Questions en attente" })).toBeVisible();
-	void callTool(server, "ask_user", { title: "Arrivée en direct", questions: QUESTIONS, wait_seconds: 5 }).catch(
+	await expect(page.getByRole("heading", { name: "Pending questions" })).toBeVisible();
+	void callTool(server, "ask_user", { title: "Arriving live", questions: QUESTIONS, wait_seconds: 5 }).catch(
 		() => undefined,
 	);
 	await expect(page).toHaveURL(/\/s\/[0-9a-f-]{36}$/);
-	await expect(page.getByRole("heading", { name: "Arrivée en direct" })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Arriving live" })).toBeVisible();
 });
 
 test("a late answer can be retrieved with get_answers", async ({ page }) => {
-	const first = await callTool(server, "ask_user", { title: "Tardive", questions: QUESTIONS, wait_seconds: 1 });
+	const first = await callTool(server, "ask_user", { title: "Late", questions: QUESTIONS, wait_seconds: 1 });
 	expect(first.json).toMatchObject({ status: "pending" });
 	const sessionId = String(first.json?.["session_id"]);
 
 	await page.goto(`${server.url}/s/${sessionId}`);
 	await page.getByRole("radio", { name: "SQLite" }).check();
-	await page.getByRole("button", { name: "Envoyer à l'agent" }).click();
+	await page.getByRole("button", { name: "Send to the agent" }).click();
 
 	const later = await callTool(server, "get_answers", { session_id: sessionId, wait_seconds: 0 });
 	expect(later.json).toMatchObject({ status: "answered" });
@@ -129,7 +129,7 @@ test("markdown content coming from the agent is sanitized (no script, no remote 
 	const hostile = [
 		{
 			id: "x",
-			prompt: '<img src="https://tracker.example/pixel.png" onerror="alert(1)"> ![p](https://tracker.example/p2.png) <script>alert(2)</script>[clic](javascript:alert(3))',
+			prompt: '<img src="https://tracker.example/pixel.png" onerror="alert(1)"> ![p](https://tracker.example/p2.png) <script>alert(2)</script>[click](javascript:alert(3))',
 			type: "text",
 		},
 	];
@@ -146,5 +146,5 @@ test("the API rejects foreign origins and unknown routes answer in JSON", async 
 	expect(foreign.status).toBe(403);
 	const unknown = await fetch(`${server.url}/api/nope`);
 	expect(unknown.status).toBe(404);
-	expect(await unknown.json()).toEqual({ error: "Route introuvable" });
+	expect(await unknown.json()).toEqual({ error: "Route not found" });
 });

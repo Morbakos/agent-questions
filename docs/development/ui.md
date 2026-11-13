@@ -1,6 +1,6 @@
 # UI
 
-`packages/ui` is an Angular 21.2 single-page application: standalone components, signals, `OnPush` change detection, SCSS, and `marked` for markdown. UI strings are in French.
+`packages/ui` is an Angular 21.2 single-page application: standalone components, signals, `OnPush` change detection, SCSS, and `marked` for markdown. UI strings are in English.
 
 ## Structure
 
@@ -30,9 +30,9 @@ Routes (`app.routes.ts`) are lazy-loaded with `loadComponent`:
 | `/s/:id`                | One question session          | none          |
 | `/login`                | Sign-in                       | none          |
 | `/invite/:token`        | Accept an invitation          | none          |
-| `/account`              | "Mon compte"                  | `serverGuard` |
-| `/admin/users`          | "Utilisateurs"                | `adminGuard`  |
-| `/admin/sessions`       | "Sessions des utilisateurs"   | `adminGuard`  |
+| `/account`              | "My account"                  | `serverGuard` |
+| `/admin/users`          | "Users"                       | `adminGuard`  |
+| `/admin/sessions`       | "User sessions"                | `adminGuard`  |
 | `/admin/sessions/:id`   | One user's session, read-only | `adminGuard`  |
 | `**`                    | Redirects to `/`              |               |
 

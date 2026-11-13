@@ -24,29 +24,29 @@ describe("QuestionComponent", () => {
 	};
 
 	it("names the option group and the text area after the question's prompt", async () => {
-		await render(singleQuestion({ id: "choix" }));
+		await render(singleQuestion({ id: "choice" }));
 		const group = el().querySelector('[role="group"]');
-		expect(group?.getAttribute("aria-labelledby")).toBe("q-choix-prompt");
-		expect(el().querySelector("#q-choix-prompt")).not.toBeNull();
+		expect(group?.getAttribute("aria-labelledby")).toBe("q-choice-prompt");
+		expect(el().querySelector("#q-choice-prompt")).not.toBeNull();
 
-		await render(textQuestion({ id: "libre" }));
-		expect(el().querySelector("textarea")?.getAttribute("aria-labelledby")).toBe("q-libre-prompt");
+		await render(textQuestion({ id: "free" }));
+		expect(el().querySelector("textarea")?.getAttribute("aria-labelledby")).toBe("q-free-prompt");
 	});
 
 	it("says a question is optional, and marks the others as required", async () => {
 		await render(singleQuestion({ required: false }));
-		expect(el().textContent).toContain("(facultatif)");
+		expect(el().textContent).toContain("(optional)");
 		expect(el().querySelector('[role="group"]')?.getAttribute("aria-required")).toBe("false");
 
 		await render(singleQuestion());
-		expect(el().textContent).not.toContain("(facultatif)");
+		expect(el().textContent).not.toContain("(optional)");
 		expect(el().querySelector('[role="group"]')?.getAttribute("aria-required")).toBe("true");
 	});
 
 	it("shows the header and the prompt rendered as markdown", async () => {
 		await render(singleQuestion());
-		expect(el().querySelector(".q-head")?.textContent).toContain("Choix");
-		expect(el().querySelector(".q-prompt strong")?.textContent).toBe("choisir");
+		expect(el().querySelector(".q-head")?.textContent).toContain("Choice");
+		expect(el().querySelector(".q-prompt strong")?.textContent).toBe("choose");
 	});
 
 	it("shows the context in a collapsible block when provided", async () => {
@@ -57,11 +57,11 @@ describe("QuestionComponent", () => {
 	});
 
 	describe("recommended choice", () => {
-		it("shows a « Recommandé » badge only on the recommended option", async () => {
+		it('shows a "Recommended" badge only on the recommended option', async () => {
 			await render(singleQuestion());
 			const labels = Array.from(el().querySelectorAll(".opt"));
 			expect(labels).toHaveLength(2);
-			expect(labels[0]?.querySelector(".badge")?.textContent).toBe("Recommandé");
+			expect(labels[0]?.querySelector(".badge")?.textContent).toBe("Recommended");
 			expect(labels[1]?.querySelector(".badge")).toBeNull();
 		});
 
@@ -87,11 +87,11 @@ describe("QuestionComponent", () => {
 		it("renders radio buttons and shows the options' descriptions", async () => {
 			await render(singleQuestion());
 			expect(inputs().map((i) => i.type)).toEqual(["radio", "radio"]);
-			expect(el().querySelector(".opt-desc")?.textContent).toBe("La première");
+			expect(el().querySelector(".opt-desc")?.textContent).toBe("The first");
 		});
 
-		it("emits the chosen option and clears the « Autre » text", async () => {
-			await render(singleQuestion(), { selected: [], text: "ancien" });
+		it('emits the chosen option and clears the "Other" text', async () => {
+			await render(singleQuestion(), { selected: [], text: "previous" });
 			await click(inputs()[1]!);
 			expect(emitted).toEqual([{ selected: ["b"], text: "", notes: {} }]);
 		});
@@ -125,7 +125,7 @@ describe("QuestionComponent", () => {
 		it("appears only under a checked option, and only if allow_notes is not false", async () => {
 			await render(multiQuestion(), { selected: ["x"], text: "" });
 			expect(el().querySelectorAll(".opt-note")).toHaveLength(1);
-			expect(noteButton()?.textContent).toContain("Ajouter une précision");
+			expect(noteButton()?.textContent).toContain("Add a note");
 
 			await render(multiQuestion({ allow_notes: false }), { selected: ["x"], text: "" });
 			expect(el().querySelector(".opt-note")).toBeNull();
@@ -135,16 +135,16 @@ describe("QuestionComponent", () => {
 			await render(multiQuestion(), { selected: ["x"], text: "" });
 			await click(noteButton()!);
 			const area = noteArea()!;
-			expect(area.getAttribute("aria-label")).toContain("Précision sur");
-			area.value = "seulement pour X";
+			expect(area.getAttribute("aria-label")).toContain("Note on");
+			area.value = "only for X";
 			area.dispatchEvent(new Event("input"));
 			await fixture.whenStable();
-			expect(emitted.at(-1)).toEqual({ selected: ["x"], text: "", notes: { x: "seulement pour X" } });
+			expect(emitted.at(-1)).toEqual({ selected: ["x"], text: "", notes: { x: "only for X" } });
 		});
 
 		it("shows the field right away when a note exists", async () => {
-			await render(multiQuestion(), { selected: ["x"], text: "", notes: { x: "déjà là" } });
-			expect(noteArea()?.value).toBe("déjà là");
+			await render(multiQuestion(), { selected: ["x"], text: "", notes: { x: "already there" } });
+			expect(noteArea()?.value).toBe("already there");
 		});
 
 		it("removes the note of an unchecked option", async () => {
@@ -160,7 +160,7 @@ describe("QuestionComponent", () => {
 		});
 	});
 
-	describe("« Autre » field", () => {
+	describe('"Other" field', () => {
 		const typeOther = async (value: string) => {
 			const area = el().querySelector<HTMLTextAreaElement>(".other textarea")!;
 			area.value = value;
@@ -177,8 +177,8 @@ describe("QuestionComponent", () => {
 
 		it("on single choice, typing text deselects the options", async () => {
 			await render(singleQuestion({ allow_other: true }), { selected: ["a"], text: "" });
-			await typeOther("autre chose");
-			expect(emitted).toEqual([{ selected: [], text: "autre chose" }]);
+			await typeOther("something else");
+			expect(emitted).toEqual([{ selected: [], text: "something else" }]);
 		});
 
 		it("on single choice, an empty text keeps the selection", async () => {
@@ -196,24 +196,24 @@ describe("QuestionComponent", () => {
 
 	describe("free-text question", () => {
 		it("renders a textarea with its placeholder, without options", async () => {
-			await render(textQuestion({ placeholder: "Écrivez…" }), { selected: [], text: "déjà" });
+			await render(textQuestion({ placeholder: "Write…" }), { selected: [], text: "already" });
 			const area = el().querySelector<HTMLTextAreaElement>("textarea")!;
-			expect(area.placeholder).toBe("Écrivez…");
-			expect(area.value).toBe("déjà");
+			expect(area.placeholder).toBe("Write…");
+			expect(area.value).toBe("already");
 			expect(el().querySelector(".opts")).toBeNull();
 		});
 
 		it("emits the typed text", async () => {
 			await render(textQuestion());
 			const area = el().querySelector<HTMLTextAreaElement>("textarea")!;
-			area.value = "réponse";
+			area.value = "answer";
 			area.dispatchEvent(new Event("input"));
-			expect(emitted).toEqual([{ selected: [], text: "réponse" }]);
+			expect(emitted).toEqual([{ selected: [], text: "answer" }]);
 		});
 	});
 
 	it("exposes an anchor id for the page outline", async () => {
 		await render(singleQuestion());
-		expect(el().querySelector("section")?.id).toBe("q-choix");
+		expect(el().querySelector("section")?.id).toBe("q-choice");
 	});
 });

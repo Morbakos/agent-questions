@@ -7,8 +7,8 @@ export function parseBody<S extends z.ZodType>(schema: S, body: unknown): z.outp
 	if (!result.success) {
 		throw new HttpError(
 			400,
-			"Requête invalide",
-			result.error.issues.map((issue) => `${issue.path.join(".") || "corps"} : ${issue.message}`),
+			"Invalid request",
+			result.error.issues.map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`),
 		);
 	}
 	return result.data;

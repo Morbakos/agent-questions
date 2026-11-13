@@ -36,7 +36,7 @@ class FakeEventSource {
 describe("LiveService", () => {
 	const navigate = vi.fn().mockResolvedValue(true);
 	const router = { navigate, url: "/" };
-	const announce = (sessionId = "abc", title = "Nouvelles questions") =>
+	const announce = (sessionId = "abc", title = "New questions") =>
 		FakeEventSource.instances[0]!.emit("new-session", JSON.stringify({ sessionId, title }));
 
 	let live: LiveService;
@@ -68,9 +68,9 @@ describe("LiveService", () => {
 
 	it("offers to go there, without navigating, when a form is displayed", () => {
 		live.editing.set(true);
-		announce("abc", "Mon titre");
+		announce("abc", "My title");
 		expect(navigate).not.toHaveBeenCalled();
-		expect(live.offer()).toEqual({ sessionId: "abc", title: "Mon titre" });
+		expect(live.offer()).toEqual({ sessionId: "abc", title: "My title" });
 	});
 
 	it("goes to the proposed questions when the user accepts", () => {
@@ -91,8 +91,8 @@ describe("LiveService", () => {
 
 	it("keeps the latest proposal when several sessions arrive", () => {
 		live.editing.set(true);
-		announce("a", "Première");
-		announce("b", "Seconde");
+		announce("a", "First");
+		announce("b", "Second");
 		expect(live.offer()?.sessionId).toBe("b");
 	});
 
@@ -117,23 +117,23 @@ describe("LiveService", () => {
 		const title = () => TestBed.inject(Title);
 		const setHidden = (hidden: boolean) => vi.spyOn(document, "hidden", "get").mockReturnValue(hidden);
 
-		beforeEach(() => title().setTitle("Questions de l'agent"));
+		beforeEach(() => title().setTitle("Agent questions"));
 
 		it("flags the new questions in the title, then restores it when the tab is back in focus", () => {
 			setHidden(true);
 			announce();
 			announce("def");
-			expect(title().getTitle()).toBe("(1) Questions de l'agent");
+			expect(title().getTitle()).toBe("(1) Agent questions");
 
 			setHidden(false);
 			document.dispatchEvent(new Event("visibilitychange"));
-			expect(title().getTitle()).toBe("Questions de l'agent");
+			expect(title().getTitle()).toBe("Agent questions");
 		});
 
 		it("leaves the title alone when the tab is visible", () => {
 			setHidden(false);
 			announce();
-			expect(title().getTitle()).toBe("Questions de l'agent");
+			expect(title().getTitle()).toBe("Agent questions");
 		});
 	});
 
@@ -179,7 +179,7 @@ describe("LiveService", () => {
 	});
 
 	it("ignores an unreadable event", () => {
-		expect(() => FakeEventSource.instances[0]!.emit("new-session", "pas du json")).not.toThrow();
+		expect(() => FakeEventSource.instances[0]!.emit("new-session", "not json")).not.toThrow();
 		expect(navigate).not.toHaveBeenCalled();
 	});
 

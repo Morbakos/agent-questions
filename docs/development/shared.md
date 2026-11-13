@@ -34,7 +34,7 @@ The UI must not pull zod into its bundle. The package is marked `sideEffects: fa
 
 Do not import a zod schema (`QuestionSchema`, `LoginSchema`, ...) from UI code. If the UI needs a rule that a schema encodes, extract the rule as a plain function or constant in `answers.ts` or `limits.ts` and have the schema use it. `PASSWORD_MIN_LENGTH` is the model: the schema and the UI forms both import it.
 
-`validateAnswers` runs on both sides. The UI uses it to block submission, the server runs it again on `POST /api/sessions/:id/answers` and answers 422 with the list of errors. Its messages are user-facing and in French.
+`validateAnswers` runs on both sides. The UI uses it to block submission, the server runs it again on `POST /api/sessions/:id/answers` and answers 422 with the list of errors. Its messages are user-facing and in English.
 
 ## Changing a schema
 

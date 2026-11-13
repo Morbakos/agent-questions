@@ -9,12 +9,12 @@ browser / agent --HTTPS--> reverse proxy --HTTP--> agent-questions :4317
 
 ## What the server expects from the proxy
 
-1. **The original `Host` header.** The server returns `403 {"error":"Host non autorisé"}` for any `Host` it does not
+1. **The original `Host` header.** The server returns `403 {"error":"Host not allowed"}` for any `Host` it does not
    know. Accepted hosts: `127.0.0.1` and `localhost` (on `AQ_PORT`), the entries of `AQ_ALLOWED_HOSTS` (a name without a
    port gets `AQ_PORT` appended), and the host of `AQ_PUBLIC_URL`. If your proxy rewrites `Host` to the upstream name,
    either keep the original or list the rewritten value in `AQ_ALLOWED_HOSTS`.
 2. **The original `Origin` header**, untouched. A browser request whose `Origin` is not the public origin, a loopback
-   origin, or listed in `AQ_ALLOWED_ORIGINS` gets `403 {"error":"Origin non autorisée"}`.
+   origin, or listed in `AQ_ALLOWED_ORIGINS` gets `403 {"error":"Origin not allowed"}`.
 3. **`X-Forwarded-For`**, set by the proxy, and `AQ_TRUST_PROXY=<n>` on the server, where `n` is the number of proxies
    between the client and the server. With the default `0`, the server sees the proxy's address for every client, so
    all users share the same sign-in rate-limit bucket (10 failures per 15 minutes per address) and the address in

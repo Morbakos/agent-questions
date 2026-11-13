@@ -109,4 +109,4 @@ See [Build and release](build-and-release.md#ci). In short: typecheck, lint, for
 - A bug fix comes with a test that fails without the fix.
 - A new route: add an authentication test (anonymous refused, API token refused if it is a UI route, another user cannot reach it).
 - A new repository method on sessions: test that another owner gets nothing.
-- Test names in this repository are written in French; keep that for consistency within a file.
+- Test names (`describe` / `it`) are written in English.

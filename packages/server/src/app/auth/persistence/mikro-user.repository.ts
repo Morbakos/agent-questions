@@ -69,7 +69,7 @@ export class MikroUserRepository extends UserRepository {
 			await em.flush();
 		} catch (error) {
 			if (error instanceof UniqueConstraintViolationException || /UNIQUE/i.test((error as Error).message)) {
-				throw new HttpError(409, "Cet identifiant est déjà utilisé");
+				throw new HttpError(409, "This username is already taken");
 			}
 			throw error;
 		}

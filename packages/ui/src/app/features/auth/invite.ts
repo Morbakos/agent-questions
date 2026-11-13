@@ -14,18 +14,18 @@ import { passwordsMatch } from "../../core/validators";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page narrow">
-			<h1>Bienvenue</h1>
+			<h1>Welcome</h1>
 			@if (username(); as name) {
 				<p>
-					Votre compte <strong>{{ name }}</strong> est prêt. Choisissez votre mot de passe ({{ minLength }}
-					caractères minimum).
+					Your account <strong>{{ name }}</strong> is ready. Choose your password ({{ minLength }} characters
+					minimum).
 				</p>
 				<form
 					class="stack"
 					[formGroup]="form"
 					(ngSubmit)="submit()">
 					<label class="stack tight">
-						Mot de passe
+						Password
 						<input
 							class="field"
 							type="password"
@@ -44,7 +44,7 @@ import { passwordsMatch } from "../../core/validators";
 						<p
 							class="error"
 							role="alert">
-							Les deux mots de passe sont différents.
+							The two passwords do not match.
 						</p>
 					}
 					@if (error(); as message) {
@@ -58,14 +58,14 @@ import { passwordsMatch } from "../../core/validators";
 						type="submit"
 						class="btn primary"
 						[disabled]="form.invalid || busy()">
-						Créer mon accès
+						Create my access
 					</button>
 				</form>
 			} @else if (invalid()) {
 				<p
 					class="error"
 					role="alert">
-					Cette invitation est invalide ou a expiré. Demandez un nouveau lien à un administrateur.
+					This invitation is invalid or has expired. Ask an administrator for a new link.
 				</p>
 			}
 		</main>
@@ -114,7 +114,7 @@ export class InviteComponent implements OnInit {
 			await this.auth.acceptInvitation(this.token, this.form.getRawValue().password);
 			await this.router.navigateByUrl("/");
 		} catch (error) {
-			this.error.set(errorMessage(error, "Impossible d'activer le compte."));
+			this.error.set(errorMessage(error, "Could not activate the account."));
 		} finally {
 			this.busy.set(false);
 		}

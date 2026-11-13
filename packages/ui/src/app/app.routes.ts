@@ -5,7 +5,7 @@ import { adminGuard, serverGuard } from "./core/auth";
 export const routes: Routes = [
 	{
 		path: "",
-		title: "Questions de l'agent",
+		title: "Agent questions",
 		loadComponent: () => import("./features/home/home").then((m) => m.HomeComponent),
 	},
 	{
@@ -15,7 +15,7 @@ export const routes: Routes = [
 	},
 	{
 		path: "login",
-		title: "Connexion",
+		title: "Sign in",
 		loadComponent: () => import("./features/auth/login").then((m) => m.LoginComponent),
 	},
 	{
@@ -25,25 +25,25 @@ export const routes: Routes = [
 	},
 	{
 		path: "account",
-		title: "Mon compte",
+		title: "My account",
 		canActivate: [serverGuard],
 		loadComponent: () => import("./features/account/account").then((m) => m.AccountComponent),
 	},
 	{
 		path: "admin/users",
-		title: "Utilisateurs",
+		title: "Users",
 		canActivate: [adminGuard],
 		loadComponent: () => import("./features/admin/users").then((m) => m.UsersComponent),
 	},
 	{
 		path: "admin/sessions",
-		title: "Sessions des utilisateurs",
+		title: "User sessions",
 		canActivate: [adminGuard],
 		loadComponent: () => import("./features/admin/sessions").then((m) => m.AdminSessionsComponent),
 	},
 	{
 		path: "admin/sessions/:id",
-		title: "Session d'un utilisateur",
+		title: "User session",
 		canActivate: [adminGuard],
 		loadComponent: () => import("./features/admin/session-detail").then((m) => m.AdminSessionDetailComponent),
 	},

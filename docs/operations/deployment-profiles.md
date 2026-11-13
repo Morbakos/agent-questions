@@ -56,7 +56,7 @@ administrator:
 - Username: `AQ_ADMIN_USERNAME`, default `admin`. 3 to 40 characters: letters, digits, `.`, `-`, `_`, starting with a
   letter or digit.
 - Password: `AQ_ADMIN_PASSWORD` (10 to 200 characters). If unset, a random password is generated and printed **once**
-  in the startup logs, at `warn` level: `Compte administrateur créé : identifiant « admin », mot de passe « ... »`.
+  in the startup logs, at `warn` level: `Administrator account created: username "admin", password "..."`.
   Only its hash is stored. Change it after the first sign-in.
 
 Both variables are ignored once any account exists. `AQ_ADMIN_USERNAME` is still format-checked at every start.

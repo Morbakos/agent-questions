@@ -175,8 +175,8 @@ remplacer l'émetteur (polling SQLite, par exemple).
 - **Un seul onglet, qui suit l'agent sans forcer la main** : l'UI garde un flux SSE `GET /api/events` ; `UiHub` en tient la
   liste. `maybeOpen` n'ouvre le navigateur que si `hub.hasUi` est faux. `ask_user` (session créée) appelle
   `hub.announce(session)` : événement `new-session`, rejoué à l'onglet qui se connecte dans les 10 s. C'est l'UI qui décide
-  (`core/live.ts`) : navigation directe si aucun formulaire n'est en cours de saisie, sinon notification « Y aller /
-  Ignorer » ; titre préfixé de « (1) » en arrière-plan. Aucun événement sur `update_questions` : la page concernée le voit en
+  (`core/live.ts`) : navigation directe si aucun formulaire n'est en cours de saisie, sinon notification « Go there /
+  Dismiss » ; titre préfixé de « (1) » en arrière-plan. Aucun événement sur `update_questions` : la page concernée le voit en
   sondant (`SessionState.pendingUpdate`), **propose** la nouvelle version et suspend l'envoi (`canSubmit`), car le serveur
   valide contre la version à jour. Marche aussi avec `AQ_NO_OPEN=1`.
 - **Le SDK envoie déjà un `: keepalive` SSE** toutes les 15 s sur `/mcp` : inutile d'en ajouter.
@@ -219,12 +219,11 @@ Deux profils. **Local** : pas de compte, écoute sur `127.0.0.1`, à ne pas expo
 
 ## Règles et conventions
 
-- Textes de l'UI et messages d'erreur renvoyés par l'API en **français** (l'UI les affiche tels quels) ; tout le reste en
-  **anglais**, y compris les messages de terminal (erreurs de configuration, bannière de démarrage, stderr du lanceur
-  `--stdio`, scripts de build) : documentation
-  (README, `docs/`, CONTRIBUTING…), commentaires de code (aucun commentaire français ne doit subsister), descriptions de
-  tests (`describe` / `it`), identifiants et descriptions d'outils MCP. Les messages de commit sont en anglais. Ce
-  `CLAUDE.md` reste en français.
+- **Tout est en anglais** : textes de l'UI, messages d'erreur renvoyés par l'API (l'UI les affiche tels quels), messages
+  de terminal (erreurs de configuration, bannière de démarrage, stderr du lanceur `--stdio`, scripts de build, journaux),
+  documentation (README, `docs/`, CONTRIBUTING…), commentaires de code (aucun commentaire français ne doit subsister),
+  descriptions de tests (`describe` / `it`), identifiants et descriptions d'outils MCP. Les messages de commit sont en
+  anglais. Seul ce `CLAUDE.md` reste en français.
 - Style imposé par Prettier (tabulations, guillemets doubles, 120 colonnes, un attribut par ligne dans les templates).
   Ne pas formater à la main.
 - `any` interdit ; composants Angular en `OnPush`.

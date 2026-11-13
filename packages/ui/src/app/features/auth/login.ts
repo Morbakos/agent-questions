@@ -10,13 +10,13 @@ import { errorMessage } from "../../core/errors";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page narrow">
-			<h1>Connexion</h1>
+			<h1>Sign in</h1>
 			<form
 				class="stack"
 				[formGroup]="form"
 				(ngSubmit)="submit()">
 				<label class="stack tight">
-					Identifiant
+					Username
 					<input
 						class="field"
 						type="text"
@@ -26,7 +26,7 @@ import { errorMessage } from "../../core/errors";
 						spellcheck="false" />
 				</label>
 				<label class="stack tight">
-					Mot de passe
+					Password
 					<input
 						class="field"
 						type="password"
@@ -44,7 +44,7 @@ import { errorMessage } from "../../core/errors";
 					type="submit"
 					class="btn primary"
 					[disabled]="form.invalid || busy()">
-					Se connecter
+					Sign in
 				</button>
 			</form>
 		</main>
@@ -73,7 +73,7 @@ export class LoginComponent {
 				safeReturnUrl(this.router.parseUrl(this.router.url).queryParams["returnUrl"]),
 			);
 		} catch (error) {
-			this.error.set(errorMessage(error, "Connexion impossible."));
+			this.error.set(errorMessage(error, "Could not sign in."));
 		} finally {
 			this.busy.set(false);
 		}

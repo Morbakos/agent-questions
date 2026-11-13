@@ -11,7 +11,7 @@ export function parseCursor(value: string | undefined): SessionCursor | undefine
 	}
 	const [, at, id] = /^(\d{1,16}):([A-Za-z0-9_-]{1,64})$/.exec(value) ?? [];
 	if (at === undefined || id === undefined) {
-		throw new HttpError(400, "Curseur invalide");
+		throw new HttpError(400, "Invalid cursor");
 	}
 	return { at: Number(at), id };
 }

@@ -16,22 +16,22 @@ export const REFRESH_MS = 5000;
 	styleUrl: "./home.scss",
 	template: `
 		<main class="page narrow">
-			<h1>Questions en attente</h1>
+			<h1>Pending questions</h1>
 			@if (error()) {
 				<p
 					class="error"
 					role="alert">
-					Impossible de charger les questions ({{ error() }}). Nouvelle tentative automatique.
+					Could not load the questions ({{ error() }}). Retrying automatically.
 				</p>
 			} @else if (!loaded()) {
 				<p
 					class="muted"
 					role="status">
-					Chargement…
+					Loading…
 				</p>
 			} @else if (sessions().length === 0) {
 				<p class="muted">
-					Aucune question en attente. Quand un agent appellera <code>ask_user</code>, elle apparaîtra ici.
+					No pending questions. When an agent calls <code>ask_user</code>, they will appear here.
 				</p>
 			}
 			<ul class="session-list">
@@ -40,8 +40,8 @@ export const REFRESH_MS = 5000;
 						<a [routerLink]="['/s', s.id]">
 							<span class="s-title">{{ s.title }}</span>
 							<span class="muted small"
-								>{{ s.questionCount }} {{ s.questionCount > 1 ? "questions" : "question" }}, reçues le
-								{{ s.createdAt | date: "dd/MM à HH:mm" }}</span
+								>{{ s.questionCount }} {{ s.questionCount > 1 ? "questions" : "question" }}, received
+								{{ s.createdAt | date: "MMM d, HH:mm" }}</span
 							>
 						</a>
 					</li>
@@ -49,7 +49,7 @@ export const REFRESH_MS = 5000;
 			</ul>
 
 			@if (history().length > 0) {
-				<h2 class="history-title">Historique</h2>
+				<h2 class="history-title">History</h2>
 				<ul class="session-list history-list">
 					@for (s of history(); track s.id) {
 						<li>
@@ -57,8 +57,8 @@ export const REFRESH_MS = 5000;
 								<span class="s-title">{{ s.title }}</span>
 								<span class="muted small"
 									>{{ s.questionCount }} {{ s.questionCount > 1 ? "questions" : "question" }},
-									{{ s.status === "declined" ? "refusée" : "répondue" }} le
-									{{ s.answeredAt | date: "dd/MM à HH:mm" }}</span
+									{{ s.status === "declined" ? "declined" : "answered" }}
+									{{ s.answeredAt | date: "MMM d, HH:mm" }}</span
 								>
 							</a>
 						</li>
@@ -69,7 +69,7 @@ export const REFRESH_MS = 5000;
 						type="button"
 						class="btn"
 						(click)="loadMore()">
-						Charger plus
+						Load more
 					</button>
 				}
 			}

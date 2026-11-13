@@ -39,33 +39,33 @@ After the first start these variables have no effect: manage accounts in the UI.
 
 ## Inviting people
 
-An admin opens "Utilisateurs" (users):
+An admin opens "Users":
 
-1. Under "Inviter une personne", enter a username and a role, then "Créer et inviter".
+1. Under "Invite someone", enter a username and a role, then "Create and invite".
 2. The page shows an invitation link, valid for 7 days. **It is shown once**: copy it and send it to the person.
-3. The person opens the link ("Bienvenue"), chooses a password (10 to 200 characters, entered twice) and is signed in.
+3. The person opens the link ("Welcome"), chooses a password (10 to 200 characters, entered twice) and is signed in.
 
-An invitation is single-use. The "Nouveau lien" button on a user issues a new link and invalidates the previous one: use
+An invitation is single-use. The "New link" button on a user issues a new link and invalidates the previous one: use
 it if a link expired or was lost. Only a hash of the link is stored.
 
-The account list shows each user's status: "Actif", "Invitation en attente" (invitation pending: no password chosen yet)
-or "Désactivé" (disabled).
+The account list shows each user's status: "Active", "Invitation pending" (no password chosen yet)
+or "Disabled".
 
 ### Managing accounts
 
 | Button                      | Effect                                                                                      |
 | --------------------------- | ------------------------------------------------------------------------------------------- |
-| Promouvoir / Rétrograder    | Switch between `admin` and `member`. Disabled on your own row.                              |
-| Désactiver / Réactiver      | Disable: closes the user's sign-in sessions and live streams and deletes their pending invitations; their API tokens stop working. Disabling asks for confirmation, with the box "Supprimer aussi ses jetons d'API" (also delete their API tokens) checked by default. Re-enabling is one click: the user signs in again, and the tokens work again only if you left the box unchecked. Disabling is not offered on your own row. |
-| Nouveau lien                | New invitation link (also usable to reset a forgotten password).                            |
+| Promote / Demote           | Switch between `admin` and `member`. Disabled on your own row.                              |
+| Disable / Enable           | Disable: closes the user's sign-in sessions and live streams and deletes their pending invitations; their API tokens stop working. Disabling asks for confirmation, with the box "Also delete their API tokens" checked by default. Re-enabling is one click: the user signs in again, and the tokens work again only if you left the box unchecked. Disabling is not offered on your own row. |
+| New link                    | New invitation link (also usable to reset a forgotten password).                            |
 
 There is always at least one active administrator: the server refuses (409) to demote or disable the last one.
 
 ## Signing in and sessions
 
-- Sign in at `/login` ("Connexion") with username and password. The browser never holds a token: the session is an
+- Sign in at `/login` ("Sign in") with username and password. The browser never holds a token: the session is an
   `HttpOnly` cookie (`__Host-sid` over HTTPS, `sid` over plain HTTP outside localhost).
-- A sign-in session lasts at most 7 days and ends after 1 day without activity. Sign out with "Se déconnecter".
+- A sign-in session lasts at most 7 days and ends after 1 day without activity. Sign out with "Sign out".
 - 10 failed attempts in 15 minutes, counted per username and per client address, block sign-in with HTTP 429, even with the
   right password. Behind a reverse proxy, set `AQ_TRUST_PROXY` so addresses are told apart (see
   [Reverse proxy](../operations/reverse-proxy.md)).
@@ -75,20 +75,20 @@ There is always at least one active administrator: the server refuses (409) to d
 
 ### Changing your password
 
-"Mon compte" > "Mot de passe": current password, new password (10 to 200 characters), confirmation. Your other
-sign-in sessions are closed ("Vos autres sessions ouvertes seront fermées"). A wrong current password is refused (403)
+"My account" > "Password": current password, new password (10 to 200 characters), confirmation. Your other
+sign-in sessions are closed ("Your other open sessions will be signed out"). A wrong current password is refused (403)
 and counts toward the attempt limit.
 
-There is no "forgot password" flow: ask an admin for a new link ("Nouveau lien").
+There is no "forgot password" flow: ask an admin for a new link ("New link").
 
 ## API tokens for MCP clients
 
-A token lets an MCP client (Claude Code, Codex, Cursor...) act as you. In "Mon compte" > "Jetons personnels":
+A token lets an MCP client (Claude Code, Codex, Cursor...) act as you. In "My account" > "Personal tokens":
 
-1. Enter a name (up to 60 characters, for example "Claude Code sur mon portable") and "Créer un jeton".
+1. Enter a name (up to 60 characters, for example "Claude Code on my laptop") and "Create token".
 2. The token (`aq_<id>_<secret>`) is shown **once**, with a ready-to-paste `claude mcp add ...` command. The browser
    does not store it; the server keeps only a hash.
-3. "Révoquer" deletes a token immediately.
+3. "Revoke" deletes a token immediately.
 
 Limits and properties:
 
