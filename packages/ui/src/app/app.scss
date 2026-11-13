@@ -8,6 +8,13 @@
 	background: var(--surface);
 }
 
+.side {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
 .user {
 	display: flex;
 	align-items: center;
