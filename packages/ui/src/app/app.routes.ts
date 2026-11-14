@@ -30,22 +30,11 @@ export const routes: Routes = [
 		loadComponent: () => import("./features/account/account").then((m) => m.AccountComponent),
 	},
 	{
-		path: "admin/users",
-		title: "Users",
-		canActivate: [adminGuard],
-		loadComponent: () => import("./features/admin/users").then((m) => m.UsersComponent),
-	},
-	{
-		path: "admin/sessions",
-		title: "User sessions",
-		canActivate: [adminGuard],
-		loadComponent: () => import("./features/admin/sessions").then((m) => m.AdminSessionsComponent),
-	},
-	{
-		path: "admin/sessions/:id",
-		title: "User session",
-		canActivate: [adminGuard],
-		loadComponent: () => import("./features/admin/session-detail").then((m) => m.AdminSessionDetailComponent),
+		// `canMatch`, not `canActivate`: for a non-admin (or the local profile) the route does not match, so the
+		// administration chunk is never downloaded and the visitor is sent back to the home page.
+		path: "admin",
+		canMatch: [adminGuard],
+		loadChildren: () => import("./features/admin/admin.routes").then((m) => m.ADMIN_ROUTES),
 	},
 	{ path: "**", redirectTo: "" },
 ];

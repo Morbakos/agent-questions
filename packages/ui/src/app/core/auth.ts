@@ -1,6 +1,6 @@
 import { HttpClient, type HttpInterceptorFn } from "@angular/common/http";
 import { Injectable, computed, inject, signal } from "@angular/core";
-import { type CanActivateFn, Router } from "@angular/router";
+import { type CanActivateFn, type CanMatchFn, Router } from "@angular/router";
 import { catchError, firstValueFrom, throwError } from "rxjs";
 import type { AuthMe } from "@agent-questions/shared";
 
@@ -103,8 +103,8 @@ export const serverGuard: CanActivateFn = async () => {
 	return auth.isServer() || router.parseUrl("/");
 };
 
-/** Pages reserved for admins. */
-export const adminGuard: CanActivateFn = async () => {
+/** Pages reserved for admins. Usable as `canMatch` (keeps the lazy chunk from loading) or `canActivate`. */
+export const adminGuard: CanActivateFn & CanMatchFn = async () => {
 	const auth = inject(AuthService);
 	const router = inject(Router);
 	await ensureLoaded(auth);
