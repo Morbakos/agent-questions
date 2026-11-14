@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, effect, inject } from "@angular/cor
 import { RouterLink, RouterOutlet } from "@angular/router";
 import { AuthService } from "./core/auth";
 import { LiveService } from "./core/live";
+import { ThemeService } from "./core/theme";
 
 @Component({
 	selector: "app-root",
@@ -15,23 +16,32 @@ import { LiveService } from "./core/live";
 				class="brand"
 				>Agent questions</a
 			>
-			@if (auth.isServer()) {
-				<nav
-					class="user"
-					aria-label="Account">
-					@if (auth.isAdmin()) {
-						<a routerLink="/admin/sessions">Sessions</a>
-						<a routerLink="/admin/users">Users</a>
-					}
-					<a routerLink="/account">{{ auth.me()?.username }}</a>
-					<button
-						type="button"
-						class="btn quiet"
-						(click)="auth.logout()">
-						Sign out
-					</button>
-				</nav>
-			}
+			<div class="side">
+				<button
+					type="button"
+					class="btn quiet"
+					[attr.aria-label]="'Theme: ' + theme.label() + ' (click to change)'"
+					(click)="theme.next()">
+					Theme: {{ theme.label() }}
+				</button>
+				@if (auth.isServer()) {
+					<nav
+						class="user"
+						aria-label="Account">
+						@if (auth.isAdmin()) {
+							<a routerLink="/admin/sessions">Sessions</a>
+							<a routerLink="/admin/users">Users</a>
+						}
+						<a routerLink="/account">{{ auth.me()?.username }}</a>
+						<button
+							type="button"
+							class="btn quiet"
+							(click)="auth.logout()">
+							Sign out
+						</button>
+					</nav>
+				}
+			</div>
 		</header>
 		@if (live.offer(); as offer) {
 			<div
@@ -62,6 +72,7 @@ import { LiveService } from "./core/live";
 export class App {
 	protected readonly live = inject(LiveService);
 	protected readonly auth = inject(AuthService);
+	protected readonly theme = inject(ThemeService);
 
 	constructor() {
 		void this.auth.load();

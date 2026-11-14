@@ -9,6 +9,12 @@
 		margin-bottom: 0;
 	}
 
+	strong,
+	th {
+		// Explicit: `bolder` inside a bold parent would reach 900 with a variable font.
+		font-weight: var(--weight-bold);
+	}
+
 	pre {
 		background: var(--surface);
 		border: 1px solid var(--rule);

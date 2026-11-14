@@ -1,8 +1,10 @@
-// Theme tokens, as CSS variables so they follow `prefers-color-scheme` without recompiling.
+// Theme tokens, as CSS variables: they follow `prefers-color-scheme` unless `data-theme` on <html> forces a theme.
 :root {
 	--paper: #eef1f4;
 	--surface: #ffffff;
 	--ink: #16202a;
+	--weight: 400;
+	--weight-bold: 600;
 	--muted: #5b6877;
 	--rule: #d3dae2;
 	--accent: #2f5bea;
@@ -10,22 +12,38 @@
 	--wash: #e4eafb;
 	--ok: #1b7a57;
 	--danger: #b3261e;
-	--ui: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+	--ui: "Roboto Variable", system-ui, -apple-system, sans-serif;
 	--mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
 	color-scheme: light dark;
 }
 
+@mixin dark-tokens {
+	--paper: #12171d;
+	--surface: #1a2129;
+	// Light text on a dark ground looks heavier (irradiation): softer ink, lighter weights.
+	--ink: #c9d1d9;
+	--weight: 350;
+	--weight-bold: 500;
+	--muted: #93a0af;
+	--rule: #2b3540;
+	--accent: #8fa9ff;
+	--accent-ink: #0e1420;
+	--wash: #222c44;
+	--ok: #4fc79b;
+	--danger: #ff8a80;
+}
+
 @media (prefers-color-scheme: dark) {
-	:root {
-		--paper: #12171d;
-		--surface: #1a2129;
-		--ink: #e6ebf0;
-		--muted: #93a0af;
-		--rule: #2b3540;
-		--accent: #8fa9ff;
-		--accent-ink: #0e1420;
-		--wash: #222c44;
-		--ok: #4fc79b;
-		--danger: #ff8a80;
+	:root:not([data-theme="light"]) {
+		@include dark-tokens;
 	}
+}
+
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+	@include dark-tokens;
+	color-scheme: dark;
 }

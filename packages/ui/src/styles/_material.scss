@@ -1,0 +1,28 @@
+// Angular Material (Material 3) theme: only defines the `--mat-sys-*` CSS variables used by Material components.
+// Roboto is self-hosted (the CSP only allows same-origin resources): see the `@fontsource-variable/roboto` import.
+@use "@angular/material" as mat;
+
+html {
+	@include mat.theme(
+		(
+			color: (
+				theme-type: color-scheme,
+				primary: mat.$azure-palette,
+				tertiary: mat.$blue-palette,
+			),
+			typography: (
+				plain-family: (
+					"Roboto Variable",
+					system-ui,
+					sans-serif,
+				),
+				brand-family: (
+					"Roboto Variable",
+					system-ui,
+					sans-serif,
+				),
+			),
+			density: 0,
+		)
+	);
+}

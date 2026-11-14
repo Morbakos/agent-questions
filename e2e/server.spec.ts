@@ -115,7 +115,10 @@ test("several users: each one only sees their own questions, the admin supervise
 	await expect(page.getByRole("row", { name: /Admin's secret/ })).toContainText("admin");
 	await bobRow.getByRole("link").click();
 	await expect(page.getByText("Read-only. Session of")).toBeVisible();
-	await expect(page.getByRole("button")).toHaveCount(await page.getByRole("button", { name: "Sign out" }).count());
+	// Read-only page: the only buttons left are the header's (theme switch, sign out).
+	const headerButtons = (await page.getByRole("button", { name: "Sign out" }).count()) + 1;
+	await expect(page.getByRole("button")).toHaveCount(headerButtons);
+	await expect(page.getByRole("button", { name: /^Theme:/ })).toHaveCount(1);
 	await expect(page.getByRole("button", { name: "Send to the agent" })).toHaveCount(0);
 
 	// The admin cannot answer in Bob's place (even by forcing the call).
