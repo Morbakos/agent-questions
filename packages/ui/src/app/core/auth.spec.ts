@@ -146,6 +146,39 @@ describe("UI authentication", () => {
 			expect(String(await run(adminGuard))).toBe("/");
 		});
 
+		it("loads the identity before deciding when used as canMatch on a hard reload", async () => {
+			const auth = TestBed.inject(AuthService);
+			const asCanMatch = () =>
+				runInInjectionContext(TestBed.inject(Injector), () =>
+					adminGuard({} as never, [] as never),
+				) as Promise<unknown>;
+			const admin = asCanMatch();
+			await Promise.resolve();
+			http.expectOne("/auth/me").flush(server("admin"));
+			expect(await admin).toBe(true);
+			expect(auth.isAdmin()).toBe(true);
+
+			// No session: the identity stays unknown, so the visitor goes to sign-in, remembering the requested page.
+			auth.me.set(null);
+			Object.defineProperty(router, "currentNavigation", {
+				value: () => ({ extractedUrl: router.parseUrl("/admin/sessions?page=2") }),
+			});
+			const anonymous = asCanMatch();
+			await Promise.resolve();
+			http.expectOne("/auth/me").flush({}, { status: 401, statusText: "Unauthorized" });
+			expect(String(await anonymous)).toBe("/login?returnUrl=%2Fadmin%2Fsessions%3Fpage%3D2");
+		});
+
+		it("sends a signed-in member home, not to sign-in", async () => {
+			const auth = TestBed.inject(AuthService);
+			auth.me.set(server("member"));
+			Object.defineProperty(router, "currentNavigation", {
+				value: () => ({ extractedUrl: router.parseUrl("/admin/users") }),
+			});
+			expect(String(await run(adminGuard))).toBe("/");
+			expect(String(await run(serverGuard))).toBe("true");
+		});
+
 		it("offers the account and tokens only in the server profile, loading the identity if needed", async () => {
 			const auth = TestBed.inject(AuthService);
 			const pending = run(serverGuard);

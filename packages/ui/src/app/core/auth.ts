@@ -1,6 +1,6 @@
 import { HttpClient, type HttpInterceptorFn } from "@angular/common/http";
 import { Injectable, computed, inject, signal } from "@angular/core";
-import { type CanActivateFn, type CanMatchFn, Router } from "@angular/router";
+import { type CanActivateFn, type CanMatchFn, Router, type UrlTree } from "@angular/router";
 import { catchError, firstValueFrom, throwError } from "rxjs";
 import type { AuthMe } from "@agent-questions/shared";
 
@@ -94,13 +94,27 @@ async function ensureLoaded(auth: AuthService): Promise<void> {
 	}
 }
 
+/**
+ * Where a guard sends a visitor it refuses. Without an identity (no session) that is the sign-in page, which brings
+ * the requested page back afterwards; a signed-in user who lacks the right (member, local profile) goes home.
+ */
+function refusal(auth: AuthService, router: Router): UrlTree {
+	if (auth.me() !== null) {
+		return router.parseUrl("/");
+	}
+	// The navigation in progress: during a guard `router.url` is still the page being left.
+	const target = router.currentNavigation()?.extractedUrl;
+	const returnUrl = target ? router.serializeUrl(target) : "";
+	return router.createUrlTree(["/login"], returnUrl && returnUrl !== "/" ? { queryParams: { returnUrl } } : {});
+}
+
 /** Pages reserved for the server profile (account, tokens): in the local profile, back to the home page. */
 export const serverGuard: CanActivateFn = async () => {
 	// `inject` is only valid before the first `await`.
 	const auth = inject(AuthService);
 	const router = inject(Router);
 	await ensureLoaded(auth);
-	return auth.isServer() || router.parseUrl("/");
+	return auth.isServer() || refusal(auth, router);
 };
 
 /** Pages reserved for admins. Usable as `canMatch` (keeps the lazy chunk from loading) or `canActivate`. */
@@ -108,5 +122,5 @@ export const adminGuard: CanActivateFn & CanMatchFn = async () => {
 	const auth = inject(AuthService);
 	const router = inject(Router);
 	await ensureLoaded(auth);
-	return auth.isAdmin() || router.parseUrl("/");
+	return auth.isAdmin() || refusal(auth, router);
 };
