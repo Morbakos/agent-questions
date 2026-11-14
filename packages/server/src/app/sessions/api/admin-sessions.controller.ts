@@ -33,7 +33,7 @@ export class AdminSessionsController {
 
 	@Get()
 	async list(@CurrentPrincipal() admin: Principal, @Query("before") before?: string): Promise<AdminSessionPage> {
-		this.logger.log(`${admin.username} consulte la liste des sessions de tous les utilisateurs`);
+		this.logger.log(`${admin.username} is viewing the sessions of all users`);
 		const cursor = parseCursor(before);
 		const page = await this.sessions.listAll(PAGE_SIZE, cursor);
 		const items = await Promise.all(
@@ -48,10 +48,10 @@ export class AdminSessionsController {
 
 	@Get(":id")
 	async get(@CurrentPrincipal() admin: Principal, @Param("id") id: string): Promise<AdminSessionView> {
-		this.logger.log(`${admin.username} consulte la session ${id}`);
+		this.logger.log(`${admin.username} is viewing session ${id}`);
 		const session = await this.sessions.getAny(id);
 		if (!session) {
-			throw new HttpError(404, "Session introuvable");
+			throw new HttpError(404, "Session not found");
 		}
 		return {
 			...view(session),

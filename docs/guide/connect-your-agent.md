@@ -143,7 +143,7 @@ the `Host` check accepts that name.
 ## Shared server: API token
 
 On a `server` profile deployment ([Accounts and roles](accounts-and-roles.md)), `/mcp` requires an API token. Create
-one in the UI (page "Mon compte", section "Jetons personnels"), copy it once, and send it in the `Authorization`
+one in the UI (page "My account", section "Personal tokens"), copy it once, and send it in the `Authorization`
 header.
 
 Claude Code:

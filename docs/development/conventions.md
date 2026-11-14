@@ -4,9 +4,7 @@ Conventions that matter when you write code here, then step-by-step recipes for 
 
 ## Language
 
-- Code identifiers and MCP tool names and descriptions: English.
-- UI text, code comments and error messages shown to users: the existing code uses French. Keep the language of the file you are editing.
-- Documentation (this folder) and commit messages: English.
+- Everything is in English: code identifiers, MCP tool names and descriptions, UI text, error messages returned by the API, terminal messages, code comments, test names (`describe` / `it`), documentation (this folder) and commit messages.
 
 ## Formatting and linting
 
@@ -83,7 +81,7 @@ Remember that the description is a prompt, and that it is evaluated at import ti
 3. Get the user with `@CurrentPrincipal() principal: Principal` and pass `principal.userId` as the owner. Never read it from the body, query or headers.
 4. Validate bodies with a shared zod schema (`parseBody(Schema, body)` or `safeParse`) and throw `HttpError(status, message, details?)`.
 5. Under a new URL prefix, extend the JSON 404 list in `UnknownRouteController`, otherwise a mistyped URL returns the UI's HTML.
-6. Add the route to the hand-written list in the test "aucune route de l'UI n'accepte un jeton d'API" in `packages/server/test/auth.e2e-spec.ts`, and cover isolation between users.
+6. Add the route to the hand-written list in the test "no UI route accepts an API token, whether the token is valid or not" in `packages/server/test/auth.e2e-spec.ts`, and cover isolation between users.
 7. Add the call to `core/api.ts` in the UI, and document it in the [HTTP API reference](../reference/http-api.md).
 
 Do not write to the database in a route the UI polls in a loop.

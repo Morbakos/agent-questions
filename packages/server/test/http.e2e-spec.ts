@@ -112,13 +112,13 @@ describe("UI API", () => {
 	});
 
 	it("lists the history and rejects an invalid cursor", async () => {
-		const session = (await store.findOrCreate(LOCAL_USER_ID, { title: "Fermée", questions: [textQuestion()] }))
+		const session = (await store.findOrCreate(LOCAL_USER_ID, { title: "Closed", questions: [textQuestion()] }))
 			.session;
 		await store.decline(LOCAL_USER_ID, session.id, "non");
 		const response = await inject({ method: "GET", url: "/api/sessions/history" });
 		expect(response.json()).toMatchObject({
 			nextBefore: null,
-			items: [expect.objectContaining({ id: session.id, title: "Fermée", status: "declined" })],
+			items: [expect.objectContaining({ id: session.id, title: "Closed", status: "declined" })],
 		});
 		expect((await inject({ method: "GET", url: "/api/sessions/history?before=abc" })).statusCode).toBe(400);
 		expect((await inject({ method: "GET", url: "/api/sessions/history?before=42" })).statusCode).toBe(400);
@@ -198,7 +198,7 @@ describe("UI SSE events", () => {
 						response.on("data", (chunk: string) => {
 							received += chunk;
 							// Announces once the connection is confirmed, then stops as soon as the event has arrived.
-							if (!announced && received.includes(": connecté")) {
+							if (!announced && received.includes(": connected")) {
 								announced = true;
 								hub.announce(LOCAL_USER_ID, { id: "s1", title: "Titre" });
 							} else if (received.includes("event: new-session")) {
@@ -210,7 +210,7 @@ describe("UI SSE events", () => {
 				);
 			});
 			expect(contentType).toContain("text/event-stream");
-			expect(received).toContain(": connecté");
+			expect(received).toContain(": connected");
 			expect(received).toContain("event: new-session");
 			expect(received).toContain('"sessionId":"s1"');
 		} finally {

@@ -30,7 +30,7 @@ export const CreateUserSchema = z.object({ username: UsernameSchema, role: RoleS
  */
 export const UpdateUserSchema = z
 	.object({ role: RoleSchema.optional(), disabled: z.boolean().optional(), revokeTokens: z.boolean().optional() })
-	.refine((value) => value.role !== undefined || value.disabled !== undefined, "Rien à modifier");
+	.refine((value) => value.role !== undefined || value.disabled !== undefined, "Nothing to update");
 export const CreateApiTokenSchema = z.object({ name: z.string().trim().min(1).max(60) });
 
 /** Identity of the caller as exposed by `GET /auth/me`. */

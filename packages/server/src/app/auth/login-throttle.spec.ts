@@ -10,7 +10,7 @@ describe("sign-in throttling", () => {
 			throttle.check(keys, 1_000 + i);
 			throttle.fail(keys, 1_000 + i);
 		}
-		expect(() => throttle.check(keys, 2_000)).toThrow(/Trop de tentatives/);
+		expect(() => throttle.check(keys, 2_000)).toThrow(/Too many sign-in attempts/);
 		expect(() => throttle.check(["user:bob", "ip:10.0.0.2"], 2_000)).not.toThrow();
 		// Either key alone is enough to block (same address, different identifier).
 		expect(() => throttle.check(["user:bob", "ip:10.0.0.1"], 2_000)).toThrow();

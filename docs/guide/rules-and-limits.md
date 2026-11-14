@@ -14,7 +14,7 @@ come from `packages/shared/src/schema.ts` and `packages/shared/src/limits.ts`; t
 | RG-S-05 | A question list has 1 to 30 questions, with unique ids.                                                           |
 | RG-S-06 | A `single` or `multi` question has 2 to 20 options with unique ids. A `text` question needs none.                 |
 | RG-S-07 | A question id is snake_case: `^[a-z0-9_]{1,64}$`.                                                                 |
-| RG-S-08 | A title is at most 120 characters. Default: "Questions de l'agent".                                              |
+| RG-S-08 | A title is at most 120 characters. Default: "Agent questions".                                              |
 
 ## Resuming without duplicates
 

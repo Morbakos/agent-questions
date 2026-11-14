@@ -53,8 +53,8 @@ Successful `/mcp` calls do not appear in the `http` lines (the MCP transport ans
 the `mcp` logger covers the waits instead.
 
 Signals worth alerting on: repeated `401` / `403` lines from one address (guessing attempts; the sign-in throttle
-answers `429` after 10 failures in 15 minutes), `503` on `/health`, a restart loop, and a startup `Configuration
-invalide` message.
+answers `429` after 10 failures in 15 minutes), `503` on `/health`, a restart loop, and a startup `Invalid
+configuration` message.
 
 ## Database size
 

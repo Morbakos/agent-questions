@@ -6,14 +6,14 @@ import { AdminSessionDetailComponent } from "./session-detail";
 
 const session: AdminSessionView = {
 	id: "s1",
-	title: "Choix de la base",
+	title: "Database choice",
 	status: "answered",
 	revision: 0,
 	questions: [
 		{
 			id: "db",
-			header: "Base",
-			prompt: "Quelle **base** ?",
+			header: "Database",
+			prompt: "Which **database**?",
 			type: "single",
 			options: [
 				{ id: "pg", label: "PostgreSQL" },
@@ -22,7 +22,7 @@ const session: AdminSessionView = {
 		},
 	],
 	draft: {},
-	answers: { db: { selected: ["sq"], text: "pour commencer" } },
+	answers: { db: { selected: ["sq"], text: "to get started" } },
 	declineReason: null,
 	readOnly: true,
 	ownerId: "u2",
@@ -54,11 +54,11 @@ describe("AdminSessionDetailComponent", () => {
 		api.adminSession.mockResolvedValue(session);
 		const el = await render();
 		expect(api.adminSession).toHaveBeenCalledWith("s1");
-		expect(el.textContent).toContain("Lecture seule");
+		expect(el.textContent).toContain("Read-only");
 		expect(el.textContent).toContain("bob");
-		expect(el.querySelector(".md strong")?.textContent).toBe("base");
+		expect(el.querySelector(".md strong")?.textContent).toBe("database");
 		expect(el.querySelector("li")?.textContent?.trim()).toBe("SQLite");
-		expect(el.querySelector("blockquote")?.textContent).toBe("pour commencer");
+		expect(el.querySelector("blockquote")?.textContent).toBe("to get started");
 		expect(el.querySelector("button, input, textarea, select")).toBeNull();
 	});
 
@@ -67,24 +67,24 @@ describe("AdminSessionDetailComponent", () => {
 			...session,
 			status: "pending",
 			answers: null,
-			draft: { db: { selected: ["inconnue"], text: "" } },
+			draft: { db: { selected: ["unknown"], text: "" } },
 		});
 		const el = await render();
-		expect(el.textContent).toContain("en attente");
-		expect(el.querySelector("li")?.textContent?.trim()).toBe("inconnue");
+		expect(el.textContent).toContain("awaiting an answer");
+		expect(el.querySelector("li")?.textContent?.trim()).toBe("unknown");
 	});
 
-	it("shows the refusal and its reason, without an answer", async () => {
+	it("shows the decline and its reason, without an answer", async () => {
 		api.adminSession.mockResolvedValue({
 			...session,
 			status: "declined",
 			answers: null,
-			declineReason: "pas le temps",
+			declineReason: "no time",
 		});
 		const el = await render();
-		expect(el.textContent).toContain("refusée");
-		expect(el.textContent).toContain("pas le temps");
-		expect(el.textContent).toContain("Pas de réponse");
+		expect(el.textContent).toContain("declined");
+		expect(el.textContent).toContain("no time");
+		expect(el.textContent).toContain("No answer");
 	});
 
 	it("shows the error when the session is not found", async () => {

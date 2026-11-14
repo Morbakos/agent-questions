@@ -19,23 +19,23 @@ import { passwordsMatch } from "../../core/validators";
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page narrow stack">
-			<h1>Mon compte</h1>
+			<h1>My account</h1>
 			<p class="muted">
-				Connecté en tant que <strong>{{ auth.me()?.username }}</strong> ({{
-					auth.isAdmin() ? "administrateur" : "collaborateur"
+				Signed in as <strong>{{ auth.me()?.username }}</strong> ({{
+					auth.isAdmin() ? "administrator" : "member"
 				}}).
 			</p>
 
 			<section
 				class="stack"
 				aria-labelledby="pwd-title">
-				<h2 id="pwd-title">Mot de passe</h2>
+				<h2 id="pwd-title">Password</h2>
 				<form
 					class="stack"
 					[formGroup]="passwordForm"
 					(ngSubmit)="changePassword()">
 					<label class="stack tight">
-						Mot de passe actuel
+						Current password
 						<input
 							class="field"
 							type="password"
@@ -43,7 +43,7 @@ import { passwordsMatch } from "../../core/validators";
 							autocomplete="current-password" />
 					</label>
 					<label class="stack tight">
-						Nouveau mot de passe ({{ minLength }} caractères minimum)
+						New password ({{ minLength }} characters minimum)
 						<input
 							class="field"
 							type="password"
@@ -70,46 +70,46 @@ import { passwordsMatch } from "../../core/validators";
 						type="submit"
 						class="btn primary"
 						[disabled]="passwordForm.invalid || busy()">
-						Changer le mot de passe
+						Change password
 					</button>
 				</form>
-				<p class="muted small">Vos autres sessions ouvertes seront fermées.</p>
+				<p class="muted small">Your other open sessions will be signed out.</p>
 			</section>
 
 			<section
 				class="stack"
 				aria-labelledby="tok-title">
-				<h2 id="tok-title">Jetons personnels</h2>
+				<h2 id="tok-title">Personal tokens</h2>
 				<p class="muted">
-					Un jeton permet à un client MCP (Claude Code, Codex…) d'agir en votre nom. Il n'est affiché qu'une
-					seule fois : copiez-le tout de suite.
+					A token lets an MCP client (Claude Code, Codex…) act on your behalf. It is shown only once: copy it
+					right away.
 				</p>
 				<form
 					class="row"
 					[formGroup]="tokenForm"
 					(ngSubmit)="createToken()">
 					<label class="stack tight grow">
-						Nom du jeton
+						Token name
 						<input
 							class="field"
 							type="text"
 							formControlName="name"
-							placeholder="Claude Code sur mon portable" />
+							placeholder="Claude Code on my laptop" />
 					</label>
 					<button
 						type="submit"
 						class="btn primary"
 						[disabled]="tokenForm.invalid || busy()">
-						Créer un jeton
+						Create token
 					</button>
 				</form>
 				@if (created(); as token) {
 					<div
 						class="panel stack tight"
 						role="status">
-						<p>Jeton « {{ token.name }} » créé. Il ne sera plus jamais affiché :</p>
+						<p>Token "{{ token.name }}" created. It will never be shown again:</p>
 						<code class="secret">{{ token.token }}</code>
-						<p class="muted small">Brancher Claude Code :</p>
+						<p class="muted small">Connect Claude Code:</p>
 						<code class="secret">{{ command(token.token) }}</code>
 					</div>
 				}
@@ -121,7 +121,7 @@ import { passwordsMatch } from "../../core/validators";
 					</p>
 				}
 				@if (tokens().length === 0) {
-					<p class="muted">Aucun jeton.</p>
+					<p class="muted">No tokens.</p>
 				} @else {
 					<ul class="plain-list">
 						@for (token of tokens(); track token.id) {
@@ -129,15 +129,15 @@ import { passwordsMatch } from "../../core/validators";
 								<span>
 									{{ token.name }}
 									<span class="muted small"
-										>— créé le {{ token.createdAt | date: "dd/MM/yyyy" }}</span
+										>— created {{ token.createdAt | date: "yyyy-MM-dd" }}</span
 									>
 								</span>
 								<button
 									type="button"
 									class="btn danger"
-									[attr.aria-label]="'Révoquer le jeton ' + token.name"
+									[attr.aria-label]="'Revoke token ' + token.name"
 									(click)="revoke(token)">
-									Révoquer
+									Revoke
 								</button>
 							</li>
 						}
@@ -203,10 +203,10 @@ export class AccountComponent implements OnInit {
 			await this.api.changePassword(current, next);
 			this.passwordForm.reset();
 			this.passwordFailed.set(false);
-			this.passwordMessage.set("Mot de passe modifié.");
+			this.passwordMessage.set("Password changed.");
 		} catch (error) {
 			this.passwordFailed.set(true);
-			this.passwordMessage.set(errorMessage(error, "Modification impossible."));
+			this.passwordMessage.set(errorMessage(error, "Could not change the password."));
 		} finally {
 			this.busy.set(false);
 		}
@@ -223,7 +223,7 @@ export class AccountComponent implements OnInit {
 			this.tokenForm.reset();
 			await this.refresh();
 		} catch (error) {
-			this.tokenError.set(errorMessage(error, "Création impossible."));
+			this.tokenError.set(errorMessage(error, "Could not create the token."));
 		} finally {
 			this.busy.set(false);
 		}
@@ -238,7 +238,7 @@ export class AccountComponent implements OnInit {
 			}
 			await this.refresh();
 		} catch (error) {
-			this.tokenError.set(errorMessage(error, "Révocation impossible."));
+			this.tokenError.set(errorMessage(error, "Could not revoke the token."));
 		}
 	}
 }

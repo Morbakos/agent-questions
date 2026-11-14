@@ -22,8 +22,8 @@ Several users, possibly hostile to each other, over a network, with the server b
 - **Isolation**: every session belongs to its creator. Each repository method takes the owner and filters on it: a
   session of another user is simply not found. The live SSE stream is also partitioned per user.
 - **Administrators see everything, read-only.** An admin can list and open every user's sessions, not answer or edit
-  them. Each such read is logged (`supervision` logger: `<admin> consulte la liste des sessions...` / `... consulte la
-  session <id>`).
+  them. Each such read is logged (`supervision` logger: `<admin> is viewing the sessions of all users` / `<admin> is
+  viewing session <id>`).
 - **Agent tokens are narrow**: an API token authenticates `/mcp` only. It cannot call the UI API, manage accounts or
   create tokens.
 - **Untrusted agent content**: question text is markdown written by an agent. The UI renders it with `marked` followed
@@ -79,7 +79,7 @@ A proxy that adds its own CSP or removes these headers will weaken or break the 
 
 - Failed authorisation (`401`, `403`) is logged at `warn` with method and path only (`auth` logger): never a token,
   cookie or password.
-- Request lines (`debug` level) hide the secret in `/auth/invitations/<token>` as `[masqué]`.
+- Request lines (`debug` level) hide the secret in `/auth/invitations/<token>` as `[masked]`.
 - Invitation links, API tokens and passwords are not logged. **Exception**: when `AQ_ADMIN_PASSWORD` is not set, the
   generated first-administrator password is written to the logs once. Rotate it right away and purge those logs if
   they are shipped somewhere shared.

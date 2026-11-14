@@ -47,7 +47,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 	private async mustGet(owner: string, id: string): Promise<Session> {
 		const session = await this.repository.get(owner, id);
 		if (!session) {
-			throw new HttpError(404, "Session introuvable");
+			throw new HttpError(404, "Session not found");
 		}
 		return session;
 	}
@@ -55,7 +55,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 	private async mustBePending(owner: string, id: string): Promise<Session> {
 		const session = await this.mustGet(owner, id);
 		if (session.status !== "pending") {
-			throw new HttpError(409, "Cette session est déjà clôturée.");
+			throw new HttpError(409, "This session is already closed.");
 		}
 		return session;
 	}
@@ -118,7 +118,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 			const known = new Set((question.options ?? []).map((option) => option.id));
 			const selected = previous.selected.filter((option) => known.has(option));
 			// A note belongs to a selected option: drop those of removed options (and all of them if notes are now off),
-			// otherwise the stale draft would be rejected at submit ("Note sans option choisie").
+			// otherwise the stale draft would be rejected at submit ("Note for unselected option").
 			const { notes, ...rest } = previous;
 			const kept = allowsNotes(question)
 				? Object.entries(notes ?? {}).filter(([option]) => selected.includes(option))
@@ -196,7 +196,7 @@ export class SessionsService implements BeforeApplicationShutdown {
 		const session = await this.mustBePending(owner, id);
 		const errors = validateAnswers(session.questions, answers);
 		if (errors.length) {
-			throw new HttpError(422, "Réponses invalides", errors);
+			throw new HttpError(422, "Invalid answers", errors);
 		}
 		await this.repository.close(owner, id, { kind: "answered", answers }, Date.now());
 		this.events.emit(id);

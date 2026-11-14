@@ -32,7 +32,7 @@ export class SessionsController {
 	async get(@CurrentPrincipal() principal: Principal, @Param("id") id: string) {
 		const session = await this.sessions.get(principal.userId, id);
 		if (!session) {
-			throw new HttpError(404, "Session introuvable");
+			throw new HttpError(404, "Session not found");
 		}
 		return view(session);
 	}
@@ -41,7 +41,7 @@ export class SessionsController {
 	async saveDraft(@CurrentPrincipal() principal: Principal, @Param("id") id: string, @Body() body: unknown) {
 		const parsed = AnswersSchema.safeParse(body);
 		if (!parsed.success) {
-			throw new HttpError(400, "Brouillon invalide");
+			throw new HttpError(400, "Invalid draft");
 		}
 		await this.sessions.saveDraft(principal.userId, id, parsed.data);
 		return { ok: true };
@@ -52,7 +52,7 @@ export class SessionsController {
 	async submit(@CurrentPrincipal() principal: Principal, @Param("id") id: string, @Body() body: unknown) {
 		const parsed = AnswersSchema.safeParse(body);
 		if (!parsed.success) {
-			throw new HttpError(400, "Réponses invalides");
+			throw new HttpError(400, "Invalid answers");
 		}
 		await this.sessions.submit(principal.userId, id, parsed.data);
 		return { ok: true };
@@ -63,7 +63,7 @@ export class SessionsController {
 	async decline(@CurrentPrincipal() principal: Principal, @Param("id") id: string, @Body() body: unknown) {
 		const parsed = DeclineSchema.safeParse(body ?? {});
 		if (!parsed.success) {
-			throw new HttpError(400, "Refus invalide");
+			throw new HttpError(400, "Invalid decline");
 		}
 		await this.sessions.decline(principal.userId, id, parsed.data.reason);
 		return { ok: true };

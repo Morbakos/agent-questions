@@ -103,7 +103,7 @@ export class QuestionTools {
 		if (this.cfg.deploymentMode === "local") {
 			return LOCAL_USER_ID;
 		}
-		throw new HttpException("Appel MCP sans utilisateur authentifié.", 401);
+		throw new HttpException("MCP call without an authenticated user.", 401);
 	}
 
 	@Tool({
@@ -149,7 +149,7 @@ export class QuestionTools {
 		const owner = this.owner(context);
 		const { session, created } = await this.sessions.findOrCreate(owner, {
 			sessionId: session_id,
-			title: title ?? "Questions de l'agent",
+			title: title ?? "Agent questions",
 			questions,
 		});
 		if (created) {
@@ -227,7 +227,7 @@ export class QuestionTools {
 			);
 		}
 		const session = await this.sessions.updateQuestions(owner, session_id, title, questions);
-		this.logger.log(`session ${session.id} : questions modifiées (révision ${session.revision})`);
+		this.logger.log(`session ${session.id}: questions updated (revision ${session.revision})`);
 		return this.waitAndRespond(owner, session, wait_seconds, context);
 	}
 
@@ -309,13 +309,13 @@ export class QuestionTools {
 		const keepalive = setInterval(() => notify(++tick, "Waiting for the user's answer"), 15_000);
 		const ms = Math.min(waitSeconds ?? this.cfg.defaultWaitSeconds, 3600) * 1000;
 		const startedAt = Date.now();
-		this.logger.log(`session ${session.id} : attente de ${ms / 1000}s`);
+		this.logger.log(`session ${session.id}: waiting ${ms / 1000}s`);
 		try {
 			const final = await this.sessions.wait(owner, session.id, ms, context.signal);
 			const elapsed = Math.round((Date.now() - startedAt) / 1000);
 			this.logger.log(
-				`session ${session.id} : ${final.status} après ${elapsed}s` +
-					(context.signal.aborted ? " (appel interrompu par le client)" : ""),
+				`session ${session.id}: ${final.status} after ${elapsed}s` +
+					(context.signal.aborted ? " (call aborted by the client)" : ""),
 			);
 			return await this.toResult(owner, final);
 		} finally {

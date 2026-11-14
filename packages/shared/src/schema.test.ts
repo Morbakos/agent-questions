@@ -56,7 +56,7 @@ describe("isAnswered", () => {
 		expect(isAnswered(textQuestion(), { selected: [], text: "ok" })).toBe(true);
 	});
 
-	it("accepts the « Autre » field by default, unless allow_other: false", () => {
+	it("accepts the 'Other' field by default, unless allow_other: false", () => {
 		const answer = { selected: [], text: "autre chose" };
 		expect(isAnswered(singleQuestion(), answer)).toBe(true);
 		expect(isAnswered(singleQuestion({ allow_other: true }), answer)).toBe(true);
@@ -78,6 +78,14 @@ describe("validateAnswers", () => {
 		expect(validateAnswers([singleQuestion()], {})).toHaveLength(1);
 	});
 
+	it("reports an answer keyed by an unknown question", () => {
+		const errors = validateAnswers([singleQuestion()], {
+			choix: { selected: ["a"], text: "" },
+			ghost: { selected: [], text: "" },
+		});
+		expect(errors).toEqual(["Unknown question: ghost"]);
+	});
+
 	it("tolerates a missing answer to an optional question", () => {
 		expect(validateAnswers([singleQuestion({ required: false })], {})).toEqual([]);
 	});
@@ -93,17 +101,17 @@ describe("validateAnswers", () => {
 	});
 
 	it("accepts a note on a selected option", () => {
-		const answers = { choix: { selected: ["a"], text: "", notes: { a: "précision" } } };
+		const answers = { choix: { selected: ["a"], text: "", notes: { a: "detail" } } };
 		expect(validateAnswers([singleQuestion()], answers)).toEqual([]);
 	});
 
 	it("rejects a note on an option that is not selected", () => {
-		const answers = { choix: { selected: ["a"], text: "", notes: { b: "précision" } } };
+		const answers = { choix: { selected: ["a"], text: "", notes: { b: "detail" } } };
 		expect(validateAnswers([singleQuestion()], answers).join(" ")).toContain("b");
 	});
 
 	it("rejects a note when allow_notes is false", () => {
-		const answers = { choix: { selected: ["a"], text: "", notes: { a: "précision" } } };
+		const answers = { choix: { selected: ["a"], text: "", notes: { a: "detail" } } };
 		expect(validateAnswers([singleQuestion({ allow_notes: false })], answers)).toHaveLength(1);
 	});
 

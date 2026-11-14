@@ -31,24 +31,24 @@ describe("HomeComponent", () => {
 	it("explains how a question shows up when the list is empty", async () => {
 		api.list.mockResolvedValue([]);
 		const { el } = await render();
-		expect(el.querySelector("h1")?.textContent).toBe("Questions en attente");
-		expect(el.textContent).toContain("Aucune question en attente");
+		expect(el.querySelector("h1")?.textContent).toBe("Pending questions");
+		expect(el.textContent).toContain("No pending questions");
 		expect(el.querySelectorAll(".session-list li")).toHaveLength(0);
 	});
 
-	it("shows « Chargement… » before the first response, not « Aucune question »", async () => {
+	it('shows "Loading…" before the first response, not "No pending questions"', async () => {
 		api.list.mockReturnValue(new Promise(() => undefined));
 		const { el } = await render();
-		expect(el.textContent).toContain("Chargement");
-		expect(el.textContent).not.toContain("Aucune question en attente");
+		expect(el.textContent).toContain("Loading");
+		expect(el.textContent).not.toContain("No pending questions");
 	});
 
 	it("reports the load failure instead of showing an empty list, then recovers", async () => {
-		api.list.mockRejectedValueOnce(new Error("réseau")).mockResolvedValue([sessionSummary({ title: "Revenue" })]);
+		api.list.mockRejectedValueOnce(new Error("network")).mockResolvedValue([sessionSummary({ title: "Revenue" })]);
 		const { fixture, el } = await render();
 		fixture.detectChanges();
-		expect(el.querySelector('[role="alert"]')?.textContent).toContain("Impossible de charger");
-		expect(el.textContent).not.toContain("Aucune question en attente");
+		expect(el.querySelector('[role="alert"]')?.textContent).toContain("Could not load");
+		expect(el.textContent).not.toContain("No pending questions");
 
 		await vi.advanceTimersByTimeAsync(REFRESH_MS);
 		fixture.detectChanges();
@@ -74,7 +74,7 @@ describe("HomeComponent", () => {
 		expect(api.list).toHaveBeenCalledTimes(2);
 	});
 
-	it("uses the singular for « 1 question »", async () => {
+	it('uses the singular for "1 question"', async () => {
 		api.list.mockResolvedValue([sessionSummary({ questionCount: 1 })]);
 		const { el } = await render();
 		expect(el.querySelector(".session-list a")?.textContent).toContain("1 question,");
@@ -83,29 +83,29 @@ describe("HomeComponent", () => {
 	it("lists the sessions with a link to their form", async () => {
 		api.list.mockResolvedValue([
 			sessionSummary({ id: "abc", title: "Migration", questionCount: 3 }),
-			sessionSummary({ id: "def", title: "Choix du back" }),
+			sessionSummary({ id: "def", title: "Backend choice" }),
 		]);
 		const { el } = await render();
 		const links = Array.from(el.querySelectorAll<HTMLAnchorElement>(".session-list a"));
 		expect(links.map((a) => a.getAttribute("href"))).toEqual(["/s/abc", "/s/def"]);
 		expect(links[0]?.textContent).toContain("Migration");
 		expect(links[0]?.textContent).toContain("3 questions");
-		expect(el.textContent).not.toContain("Aucune question en attente");
+		expect(el.textContent).not.toContain("No pending questions");
 	});
 
 	it("refreshes the list at a regular interval", async () => {
-		api.list.mockResolvedValueOnce([]).mockResolvedValue([sessionSummary({ title: "Nouvelle" })]);
+		api.list.mockResolvedValueOnce([]).mockResolvedValue([sessionSummary({ title: "Fresh" })]);
 		const { fixture, el } = await render();
 		expect(el.querySelectorAll(".session-list li")).toHaveLength(0);
 
 		await vi.advanceTimersByTimeAsync(REFRESH_MS);
 		fixture.detectChanges();
 		expect(api.list).toHaveBeenCalledTimes(2);
-		expect(el.querySelector(".session-list")?.textContent).toContain("Nouvelle");
+		expect(el.querySelector(".session-list")?.textContent).toContain("Fresh");
 	});
 
 	it("keeps the list displayed when a refresh fails", async () => {
-		api.list.mockResolvedValueOnce([sessionSummary({ title: "Stable" })]).mockRejectedValue(new Error("réseau"));
+		api.list.mockResolvedValueOnce([sessionSummary({ title: "Stable" })]).mockRejectedValue(new Error("network"));
 		const { fixture, el } = await render();
 		await vi.advanceTimersByTimeAsync(REFRESH_MS);
 		fixture.detectChanges();
@@ -114,7 +114,7 @@ describe("HomeComponent", () => {
 
 	describe("history", () => {
 		const closed = (id: string, overrides: Parameters<typeof sessionSummary>[0] = {}) =>
-			sessionSummary({ id, title: `Passée ${id}`, status: "answered", answeredAt: 1000, ...overrides });
+			sessionSummary({ id, title: `Past ${id}`, status: "answered", answeredAt: 1000, ...overrides });
 		const items = (el: HTMLElement) => Array.from(el.querySelectorAll(".history-list a"));
 
 		it("does not show the section when there is no past session", async () => {
@@ -131,9 +131,9 @@ describe("HomeComponent", () => {
 			});
 			const { el } = await render();
 			expect(items(el).map((a) => a.getAttribute("href"))).toEqual(["/s/a", "/s/b"]);
-			expect(items(el)[0]?.textContent).toContain("répondue le");
-			expect(items(el)[1]?.textContent).toContain("refusée le");
-			expect(Array.from(el.querySelectorAll("button")).some((b) => b.textContent?.includes("Charger plus"))).toBe(
+			expect(items(el)[0]?.textContent).toContain("answered");
+			expect(items(el)[1]?.textContent).toContain("declined");
+			expect(Array.from(el.querySelectorAll("button")).some((b) => b.textContent?.includes("Load more"))).toBe(
 				false,
 			);
 		});
@@ -145,7 +145,7 @@ describe("HomeComponent", () => {
 				.mockResolvedValueOnce({ items: [closed("a"), closed("b")], nextBefore: null });
 			const { fixture, el } = await render();
 			const more = el.querySelector<HTMLButtonElement>("button")!;
-			expect(more.textContent).toContain("Charger plus");
+			expect(more.textContent).toContain("Load more");
 
 			more.click();
 			await vi.advanceTimersByTimeAsync(0);
@@ -174,7 +174,7 @@ describe("HomeComponent", () => {
 		it("retries on the next tick when the first load fails", async () => {
 			api.list.mockResolvedValue([]);
 			api.history
-				.mockRejectedValueOnce(new Error("réseau"))
+				.mockRejectedValueOnce(new Error("network"))
 				.mockResolvedValue({ items: [closed("a")], nextBefore: null });
 			const { fixture, el } = await render();
 			expect(items(el)).toHaveLength(0);

@@ -7,7 +7,7 @@ import { button, typeInto } from "../../../testing/dom";
 import { AccountComponent } from "./account";
 
 describe("AccountComponent", () => {
-	const existing: ApiTokenSummary = { id: "t1", name: "Portable", createdAt: 1_700_000_000_000 };
+	const existing: ApiTokenSummary = { id: "t1", name: "Laptop", createdAt: 1_700_000_000_000 };
 	const api = {
 		tokens: vi.fn(),
 		createToken: vi.fn(),
@@ -39,22 +39,22 @@ describe("AccountComponent", () => {
 	it("shows the user and their tokens", async () => {
 		const { el } = await render();
 		expect(el.textContent).toContain("alice");
-		expect(el.textContent).toContain("Portable");
+		expect(el.textContent).toContain("Laptop");
 	});
 
 	it("changes the password when the current one is given and the confirmation matches", async () => {
 		api.changePassword.mockResolvedValue(undefined);
 		const { fixture, el } = await render();
-		expect(button(el, "Changer le mot de passe").disabled).toBe(true);
-		typeInto(el, 'input[formControlName="current"]', "ancien-mot-de-passe");
-		typeInto(el, 'input[formControlName="next"]', "nouveau-mot-de-passe");
-		typeInto(el, 'input[formControlName="confirm"]', "nouveau-mot-de-passe");
+		expect(button(el, "Change password").disabled).toBe(true);
+		typeInto(el, 'input[formControlName="current"]', "old-password-value");
+		typeInto(el, 'input[formControlName="next"]', "new-password-value");
+		typeInto(el, 'input[formControlName="confirm"]', "new-password-value");
 		fixture.detectChanges();
-		button(el, "Changer le mot de passe").click();
+		button(el, "Change password").click();
 		await fixture.whenStable();
 		fixture.detectChanges();
-		expect(api.changePassword).toHaveBeenCalledWith("ancien-mot-de-passe", "nouveau-mot-de-passe");
-		expect(el.textContent).toContain("Mot de passe modifié");
+		expect(api.changePassword).toHaveBeenCalledWith("old-password-value", "new-password-value");
+		expect(el.textContent).toContain("Password changed");
 	});
 
 	it("creates a token and shows it only once, with the connection command", async () => {
@@ -62,7 +62,7 @@ describe("AccountComponent", () => {
 		const { fixture, el } = await render();
 		typeInto(el, 'input[formControlName="name"]', "Codex");
 		fixture.detectChanges();
-		button(el, "Créer un jeton").click();
+		button(el, "Create token").click();
 		await fixture.whenStable();
 		fixture.detectChanges();
 		expect(api.createToken).toHaveBeenCalledWith("Codex");
@@ -76,10 +76,10 @@ describe("AccountComponent", () => {
 		api.revokeToken.mockResolvedValue(undefined);
 		const { fixture, el } = await render();
 		api.tokens.mockResolvedValue([]);
-		el.querySelector<HTMLButtonElement>('button[aria-label="Révoquer le jeton Portable"]')?.click();
+		el.querySelector<HTMLButtonElement>('button[aria-label="Revoke token Laptop"]')?.click();
 		await fixture.whenStable();
 		fixture.detectChanges();
 		expect(api.revokeToken).toHaveBeenCalledWith("t1");
-		expect(el.textContent).toContain("Aucun jeton");
+		expect(el.textContent).toContain("No tokens");
 	});
 });

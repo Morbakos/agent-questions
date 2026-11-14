@@ -14,8 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- Startup, configuration and script messages (terminal output) are now in English; the UI and API error messages stay
-  in French.
+- The whole product is now in English: the UI, the API error messages, the answer validation messages, the server logs
+  and the terminal output. The default session title, when `ask_user` is called without one, is now "Agent questions".
 - Documentation rewritten in English and reorganised under `docs/` (guide, operations, reference, development).
 
 ## [0.1.1]

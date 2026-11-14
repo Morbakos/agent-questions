@@ -1,35 +1,35 @@
 @switch (s.state()) {
 	@case ("loading") {
-		<p class="page narrow muted">Chargement…</p>
+		<p class="page narrow muted">Loading…</p>
 	}
 	@case ("missing") {
 		<main class="page narrow">
-			<h1>Session introuvable</h1>
-			<p>Cette session n'existe pas ou a été supprimée. <a routerLink="/">Retour à la liste</a></p>
+			<h1>Session not found</h1>
+			<p>This session does not exist or has been deleted. <a routerLink="/">Back to the list</a></p>
 		</main>
 	}
 	@case ("answered") {
 		<main class="page narrow">
-			<h1>Réponses envoyées</h1>
-			<p>L'agent a reçu vos réponses. Vous pouvez fermer cet onglet.</p>
+			<h1>Answers sent</h1>
+			<p>The agent has received your answers. You can close this tab.</p>
 		</main>
 	}
 	@case ("declined") {
 		<main class="page narrow">
-			<h1>Refus transmis</h1>
-			<p>L'agent sait que vous ne souhaitez pas répondre. Vous pouvez fermer cet onglet.</p>
+			<h1>Decline sent</h1>
+			<p>The agent knows you chose not to answer. You can close this tab.</p>
 		</main>
 	}
 	@case ("closed") {
 		@if (s.session(); as session) {
 			<main class="page narrow">
-				<p><a routerLink="/">← Retour à la liste</a></p>
+				<p><a routerLink="/">← Back to the list</a></p>
 				<h1>{{ session.title }}</h1>
 				@if (session.status === "declined") {
 					<p
 						class="notice"
 						role="status">
-						Vous avez refusé de répondre
+						You declined to answer
 						@if (session.declineReason) {
 							: {{ session.declineReason }}
 						}
@@ -57,7 +57,7 @@
 									<p class="past-text">{{ text }}</p>
 								}
 								@if (chosen.length === 0 && !text) {
-									<p class="muted">Sans réponse.</p>
+									<p class="muted">No answer.</p>
 								}
 							</div>
 						}
@@ -71,8 +71,8 @@
 			<div class="layout">
 				<nav
 					class="outline"
-					aria-label="Plan des questions">
-					<h2 class="outline-title">Plan</h2>
+					aria-label="Question outline">
+					<h2 class="outline-title">Outline</h2>
 					<ol>
 						@for (q of session.questions; track q.id) {
 							<li>
@@ -84,13 +84,13 @@
 									{{ q.header || q.id }}
 									@if (s.done(q)) {
 										<span aria-hidden="true"> ✓</span>
-										<span class="visually-hidden">(répondue)</span>
+										<span class="visually-hidden">(answered)</span>
 									}
 								</button>
 							</li>
 						}
 					</ol>
-					<p class="muted small">{{ s.doneCount() }} sur {{ session.questions.length }} répondues</p>
+					<p class="muted small">{{ s.doneCount() }} of {{ session.questions.length }} answered</p>
 				</nav>
 
 				<main class="questions">
@@ -100,14 +100,14 @@
 							class="notice update"
 							role="status">
 							<span
-								>L'agent a modifié les questions. L'envoi est suspendu tant que vous n'avez pas affiché
-								la nouvelle version.</span
+								>The agent changed the questions. Sending is paused until you display the new
+								version.</span
 							>
 							<button
 								type="button"
 								class="btn primary"
 								(click)="s.applyUpdate()">
-								Afficher les nouvelles questions
+								Show the new questions
 							</button>
 						</div>
 					}
@@ -115,7 +115,7 @@
 						<p
 							class="notice"
 							role="status">
-							L'agent a modifié les questions. Vos réponses ont été conservées quand c'était possible.
+							The agent changed the questions. Your answers were kept where possible.
 						</p>
 					}
 					@for (q of session.questions; track q.id) {
@@ -132,30 +132,28 @@
 								class="btn primary"
 								[disabled]="!s.canSubmit() || s.sending()"
 								(click)="s.submit()">
-								{{ s.sending() ? "Envoi…" : "Envoyer à l'agent" }}
+								{{ s.sending() ? "Sending…" : "Send to the agent" }}
 							</button>
 							@if (s.pendingUpdate()) {
-								<span class="muted small">Envoi suspendu : l'agent a modifié les questions</span>
+								<span class="muted small">Sending paused: the agent changed the questions</span>
 							}
 							@if (s.missing() > 0) {
-								<span class="muted small"
-									>{{ s.missing() }} réponse(s) obligatoire(s) manquante(s)</span
-								>
+								<span class="muted small">{{ s.missing() }} required answer(s) missing</span>
 							}
 							@if (s.draftFailed()) {
 								<span
 									class="error small"
 									role="status"
-									>Brouillon non enregistré</span
+									>Draft not saved</span
 								>
 							} @else if (s.savedAt(); as t) {
-								<span class="muted small">Brouillon enregistré à {{ t | date: "HH:mm" }}</span>
+								<span class="muted small">Draft saved at {{ t | date: "HH:mm" }}</span>
 							}
 						</div>
 
 						@if (declining()) {
 							<div class="decline">
-								<label for="reason">Pourquoi ne pas répondre ? (facultatif)</label>
+								<label for="reason">Why not answer? (optional)</label>
 								<textarea
 									id="reason"
 									class="field"
@@ -168,13 +166,13 @@
 										class="btn danger"
 										[disabled]="s.declineSending()"
 										(click)="s.decline(reason())">
-										Confirmer le refus
+										Confirm decline
 									</button>
 									<button
 										type="button"
 										class="btn"
 										(click)="declining.set(false)">
-										Annuler
+										Cancel
 									</button>
 								</div>
 							</div>
@@ -183,7 +181,7 @@
 								type="button"
 								class="btn quiet"
 								(click)="declining.set(true)">
-								Ne pas répondre
+								Decline
 							</button>
 						}
 

@@ -35,19 +35,19 @@ describe("SessionState", () => {
 			expect(state.state()).toBe("loading");
 		});
 
-		it("switches to « ready » with empty answers for each question", async () => {
+		it('switches to "ready" with empty answers for each question', async () => {
 			await ready();
 			expect(state.state()).toBe("ready");
 			expect(state.answers()).toEqual({
-				choix: { selected: [], text: "" },
-				libre: { selected: [], text: "" },
+				choice: { selected: [], text: "" },
+				free: { selected: [], text: "" },
 			});
 		});
 
 		it("restores the saved draft", async () => {
-			await ready(sessionView({ draft: { choix: { selected: ["b"], text: "" } } }));
-			expect(state.answers()["choix"]).toEqual({ selected: ["b"], text: "" });
-			expect(state.answers()["libre"]).toEqual({ selected: [], text: "" });
+			await ready(sessionView({ draft: { choice: { selected: ["b"], text: "" } } }));
+			expect(state.answers()["choice"]).toEqual({ selected: ["b"], text: "" });
+			expect(state.answers()["free"]).toEqual({ selected: [], text: "" });
 		});
 
 		it.each(["answered", "declined"] as const)(
@@ -91,20 +91,20 @@ describe("SessionState", () => {
 			expect(api.get).toHaveBeenCalledTimes(1);
 		});
 
-		it("switches to « missing » when the session is not found", async () => {
+		it('switches to "missing" when the session is not found', async () => {
 			api.get.mockRejectedValue(new HttpErrorResponse({ status: 404 }));
-			await state.init("inconnue");
+			await state.init("unknown");
 			expect(state.state()).toBe("missing");
 		});
 	});
 
-	describe("refusal and draft", () => {
-		it("sends only one refusal even if clicked twice", async () => {
+	describe("decline and draft", () => {
+		it("sends only one decline even if clicked twice", async () => {
 			await ready();
 			let finish: () => void = () => undefined;
 			api.decline.mockReturnValue(new Promise((done) => (finish = () => done({}))));
-			const first = state.decline("non");
-			const second = state.decline("non");
+			const first = state.decline("no");
+			const second = state.decline("no");
 			expect(state.declineSending()).toBe(true);
 			finish();
 			await Promise.all([first, second]);
@@ -112,19 +112,19 @@ describe("SessionState", () => {
 			expect(state.declineSending()).toBe(false);
 		});
 
-		it("no longer shows « enregistré » when the draft save fails, and restores it afterwards", async () => {
+		it('no longer shows "saved" when the draft save fails, and restores it afterwards', async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "a" });
+			state.onAnswer("free", { selected: [], text: "a" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS);
 			expect(state.savedAt()).toBeInstanceOf(Date);
 
 			api.saveDraft.mockRejectedValueOnce(new HttpErrorResponse({ status: 500 }));
-			state.onAnswer("libre", { selected: [], text: "ab" });
+			state.onAnswer("free", { selected: [], text: "ab" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS);
 			expect(state.draftFailed()).toBe(true);
 			expect(state.savedAt()).toBeNull();
 
-			state.onAnswer("libre", { selected: [], text: "abc" });
+			state.onAnswer("free", { selected: [], text: "abc" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS);
 			expect(state.draftFailed()).toBe(false);
 			expect(state.savedAt()).toBeInstanceOf(Date);
@@ -140,8 +140,8 @@ describe("SessionState", () => {
 			expect(state.missing()).toBe(2);
 			expect(state.canSubmit()).toBe(false);
 
-			state.onAnswer("choix", { selected: ["a"], text: "" });
-			state.onAnswer("libre", { selected: [], text: "parce que" });
+			state.onAnswer("choice", { selected: ["a"], text: "" });
+			state.onAnswer("free", { selected: [], text: "because" });
 			expect(state.doneCount()).toBe(2);
 			expect(state.missing()).toBe(0);
 			expect(state.canSubmit()).toBe(true);
@@ -156,9 +156,9 @@ describe("SessionState", () => {
 	describe("draft", () => {
 		it("saves the draft after a delay, grouping closely spaced edits", async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "a" });
+			state.onAnswer("free", { selected: [], text: "a" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS - 1);
-			state.onAnswer("libre", { selected: [], text: "ab" });
+			state.onAnswer("free", { selected: [], text: "ab" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS - 1);
 			expect(api.saveDraft).not.toHaveBeenCalled();
 
@@ -166,24 +166,24 @@ describe("SessionState", () => {
 			expect(api.saveDraft).toHaveBeenCalledTimes(1);
 			expect(api.saveDraft).toHaveBeenCalledWith(
 				"s1",
-				expect.objectContaining({ libre: { selected: [], text: "ab" } }),
+				expect.objectContaining({ free: { selected: [], text: "ab" } }),
 			);
 			expect(state.savedAt()).toBeInstanceOf(Date);
 		});
 
 		it("saves the pending input when the page is left", async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "a" });
+			state.onAnswer("free", { selected: [], text: "a" });
 			TestBed.resetTestingModule();
 			expect(api.saveDraft).toHaveBeenCalledExactlyOnceWith(
 				"s1",
-				expect.objectContaining({ libre: { selected: [], text: "a" } }),
+				expect.objectContaining({ free: { selected: [], text: "a" } }),
 			);
 		});
 
 		it("saves nothing when leaving the page if the draft is up to date", async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "a" });
+			state.onAnswer("free", { selected: [], text: "a" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS);
 			api.saveDraft.mockClear();
 			TestBed.resetTestingModule();
@@ -192,8 +192,8 @@ describe("SessionState", () => {
 
 		it("does not block the user when saving fails", async () => {
 			await ready();
-			api.saveDraft.mockRejectedValue(new Error("hors ligne"));
-			state.onAnswer("libre", { selected: [], text: "a" });
+			api.saveDraft.mockRejectedValue(new Error("offline"));
+			state.onAnswer("free", { selected: [], text: "a" });
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS);
 			expect(state.savedAt()).toBeNull();
 			expect(state.error()).toBeNull();
@@ -203,11 +203,11 @@ describe("SessionState", () => {
 	describe("submission", () => {
 		it("sends the answers then shows the confirmation", async () => {
 			await ready();
-			state.onAnswer("choix", { selected: ["a"], text: "" });
+			state.onAnswer("choice", { selected: ["a"], text: "" });
 			await state.submit();
 			expect(api.submit).toHaveBeenCalledWith(
 				"s1",
-				expect.objectContaining({ choix: { selected: ["a"], text: "" } }),
+				expect.objectContaining({ choice: { selected: ["a"], text: "" } }),
 			);
 			expect(state.state()).toBe("answered");
 			expect(state.sending()).toBe(false);
@@ -215,7 +215,7 @@ describe("SessionState", () => {
 
 		it("cancels the pending draft save", async () => {
 			await ready();
-			state.onAnswer("choix", { selected: ["a"], text: "" });
+			state.onAnswer("choice", { selected: ["a"], text: "" });
 			await state.submit();
 			await vi.advanceTimersByTimeAsync(DRAFT_DELAY_MS * 2);
 			expect(api.saveDraft).not.toHaveBeenCalled();
@@ -226,29 +226,34 @@ describe("SessionState", () => {
 			api.submit.mockRejectedValue(
 				new HttpErrorResponse({
 					status: 422,
-					error: { error: "Réponses invalides", details: ["Réponse manquante : Choix", "Option inconnue"] },
+					error: {
+						error: "Invalid answers",
+						details: ["Missing answer: Choice", 'Unknown option "zz" for choice'],
+					},
 				}),
 			);
 			await state.submit();
-			expect(state.error()).toBe("Réponses invalides (Réponse manquante : Choix ; Option inconnue)");
+			expect(state.error()).toBe('Invalid answers (Missing answer: Choice ; Unknown option "zz" for choice)');
 			expect(state.state()).toBe("ready");
 			expect(state.sending()).toBe(false);
 		});
 
 		it("uses the server's message without details, or a default message", async () => {
 			await ready();
-			api.submit.mockRejectedValue(new HttpErrorResponse({ status: 409, error: { error: "Déjà clôturée" } }));
+			api.submit.mockRejectedValue(
+				new HttpErrorResponse({ status: 409, error: { error: "This session is already closed." } }),
+			);
 			await state.submit();
-			expect(state.error()).toBe("Déjà clôturée");
+			expect(state.error()).toBe("This session is already closed.");
 
-			api.submit.mockRejectedValue(new Error("réseau"));
+			api.submit.mockRejectedValue(new Error("network"));
 			await state.submit();
-			expect(state.error()).toBe("L'envoi a échoué.");
+			expect(state.error()).toBe("Sending failed.");
 		});
 
 		it("clears the previous error on the new attempt", async () => {
 			await ready();
-			api.submit.mockRejectedValueOnce(new Error("réseau"));
+			api.submit.mockRejectedValueOnce(new Error("network"));
 			await state.submit();
 			expect(state.error()).not.toBeNull();
 			await state.submit();
@@ -256,19 +261,19 @@ describe("SessionState", () => {
 		});
 	});
 
-	describe("refusal", () => {
+	describe("decline", () => {
 		it("passes on the reason then shows the confirmation", async () => {
 			await ready();
-			await state.decline("pas le temps");
-			expect(api.decline).toHaveBeenCalledWith("s1", "pas le temps");
+			await state.decline("no time");
+			expect(api.decline).toHaveBeenCalledWith("s1", "no time");
 			expect(state.state()).toBe("declined");
 		});
 
-		it("shows an error when the refusal fails", async () => {
+		it("shows an error when the decline fails", async () => {
 			await ready();
-			api.decline.mockRejectedValue(new Error("réseau"));
+			api.decline.mockRejectedValue(new Error("network"));
 			await state.decline("");
-			expect(state.error()).toBe("Le refus n'a pas pu être transmis.");
+			expect(state.error()).toBe("The decline could not be sent.");
 			expect(state.state()).toBe("ready");
 		});
 	});
@@ -302,8 +307,8 @@ describe("SessionState", () => {
 		it("offers the new version without applying it, and suspends submission", async () => {
 			await ready();
 			const before = state.session();
-			state.onAnswer("libre", { selected: [], text: "ok" });
-			state.onAnswer("choix", { selected: ["a"], text: "" });
+			state.onAnswer("free", { selected: [], text: "ok" });
+			state.onAnswer("choice", { selected: ["a"], text: "" });
 			expect(state.canSubmit()).toBe(true);
 
 			api.get.mockResolvedValue(edited());
@@ -330,8 +335,8 @@ describe("SessionState", () => {
 
 		it("applies the new version on request: questions up to date, submission restored", async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "ok" });
-			state.onAnswer("choix", { selected: ["b"], text: "" });
+			state.onAnswer("free", { selected: [], text: "ok" });
+			state.onAnswer("choice", { selected: ["b"], text: "" });
 			api.get.mockResolvedValue(edited());
 			await vi.advanceTimersByTimeAsync(POLL_MS);
 
@@ -352,8 +357,8 @@ describe("SessionState", () => {
 
 		it("keeps the typed answers when the new version is displayed", async () => {
 			await ready();
-			state.onAnswer("libre", { selected: [], text: "en cours de saisie" });
-			state.onAnswer("choix", { selected: ["b"], text: "" });
+			state.onAnswer("free", { selected: [], text: "being typed" });
+			state.onAnswer("choice", { selected: ["b"], text: "" });
 
 			api.get.mockResolvedValue(edited());
 			await vi.advanceTimersByTimeAsync(POLL_MS);
@@ -362,26 +367,26 @@ describe("SessionState", () => {
 			expect(state.session()?.revision).toBe(1);
 			expect(state.session()?.questions[0]?.options?.map((o) => o.id)).toEqual(["b", "c"]);
 			expect(state.updated()).toBe(true);
-			expect(state.answers()["libre"]?.text).toBe("en cours de saisie");
-			expect(state.answers()["choix"]?.selected).toEqual(["b"]);
+			expect(state.answers()["free"]?.text).toBe("being typed");
+			expect(state.answers()["choice"]?.selected).toEqual(["b"]);
 		});
 
 		it("removes from the answers the options that no longer exist", async () => {
 			await ready();
-			state.onAnswer("choix", { selected: ["a"], text: "" });
+			state.onAnswer("choice", { selected: ["a"], text: "" });
 			api.get.mockResolvedValue(edited());
 			await vi.advanceTimersByTimeAsync(POLL_MS);
 			state.applyUpdate();
-			expect(state.answers()["choix"]?.selected).toEqual([]);
+			expect(state.answers()["choice"]?.selected).toEqual([]);
 		});
 
 		it("also removes the notes of the options that no longer exist", async () => {
 			await ready();
-			state.onAnswer("choix", { selected: ["a", "b"], text: "", notes: { a: "perdue", b: "gardée" } });
+			state.onAnswer("choice", { selected: ["a", "b"], text: "", notes: { a: "lost", b: "kept" } });
 			api.get.mockResolvedValue(edited());
 			await vi.advanceTimersByTimeAsync(POLL_MS);
 			state.applyUpdate();
-			expect(state.answers()["choix"]?.notes).toEqual({ b: "gardée" });
+			expect(state.answers()["choice"]?.notes).toEqual({ b: "kept" });
 		});
 
 		it("adds an empty answer for a new question and drops those removed", async () => {
@@ -389,7 +394,7 @@ describe("SessionState", () => {
 			api.get.mockResolvedValue(edited({ questions: [textQuestion(), multiQuestion()] }));
 			await vi.advanceTimersByTimeAsync(POLL_MS);
 			state.applyUpdate();
-			expect(Object.keys(state.answers()).sort()).toEqual(["libre", "multi"]);
+			expect(Object.keys(state.answers()).sort()).toEqual(["free", "multi"]);
 			expect(state.answers()["multi"]).toEqual({ selected: [], text: "" });
 		});
 
@@ -415,7 +420,7 @@ describe("SessionState", () => {
 
 		it("keeps polling after a network failure", async () => {
 			await ready();
-			api.get.mockRejectedValueOnce(new Error("réseau")).mockResolvedValue(edited());
+			api.get.mockRejectedValueOnce(new Error("network")).mockResolvedValue(edited());
 			await vi.advanceTimersByTimeAsync(POLL_MS);
 			expect(state.pendingUpdate()).toBeNull();
 			await vi.advanceTimersByTimeAsync(POLL_MS);
@@ -436,7 +441,7 @@ describe("SessionState", () => {
 
 		it("does not cancel the polling of a missing session: it does not start", async () => {
 			api.get.mockRejectedValue(new HttpErrorResponse({ status: 404 }));
-			await state.init("inconnue");
+			await state.init("unknown");
 			await vi.advanceTimersByTimeAsync(POLL_MS * 3);
 			expect(api.get).toHaveBeenCalledTimes(1);
 		});

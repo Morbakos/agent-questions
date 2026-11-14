@@ -5,7 +5,7 @@ import type { AdminSessionSummary, Status } from "@agent-questions/shared";
 import { ApiService } from "../../core/api";
 import { errorMessage } from "../../core/errors";
 
-const STATUS: Record<Status, string> = { pending: "En attente", answered: "Répondue", declined: "Refusée" };
+const STATUS: Record<Status, string> = { pending: "Pending", answered: "Answered", declined: "Declined" };
 
 /** Supervision: all sessions of all users, read-only (the admin does not answer in their place). */
 @Component({
@@ -14,8 +14,8 @@ const STATUS: Record<Status, string> = { pending: "En attente", answered: "Répo
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<main class="page stack">
-			<h1>Sessions des utilisateurs</h1>
-			<p class="muted">Lecture seule : seul le propriétaire d'une session peut y répondre.</p>
+			<h1>User sessions</h1>
+			<p class="muted">Read-only: only a session's owner can answer it.</p>
 			@if (error(); as message) {
 				<p
 					class="error"
@@ -27,10 +27,10 @@ const STATUS: Record<Status, string> = { pending: "En attente", answered: "Répo
 				<table class="table">
 					<thead>
 						<tr>
-							<th scope="col">Titre</th>
-							<th scope="col">Propriétaire</th>
-							<th scope="col">État</th>
-							<th scope="col">Créée le</th>
+							<th scope="col">Title</th>
+							<th scope="col">Owner</th>
+							<th scope="col">Status</th>
+							<th scope="col">Created</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -41,12 +41,12 @@ const STATUS: Record<Status, string> = { pending: "En attente", answered: "Répo
 								</th>
 								<td>{{ session.ownerUsername }}</td>
 								<td>{{ label(session.status) }}</td>
-								<td>{{ session.createdAt | date: "dd/MM/yyyy HH:mm" }}</td>
+								<td>{{ session.createdAt | date: "yyyy-MM-dd HH:mm" }}</td>
 							</tr>
 						} @empty {
 							@if (loaded()) {
 								<tr>
-									<td colspan="4">Aucune session.</td>
+									<td colspan="4">No sessions.</td>
 								</tr>
 							}
 						}
@@ -59,7 +59,7 @@ const STATUS: Record<Status, string> = { pending: "En attente", answered: "Répo
 					class="btn"
 					[disabled]="busy()"
 					(click)="more()">
-					Voir plus
+					Show more
 				</button>
 			}
 		</main>

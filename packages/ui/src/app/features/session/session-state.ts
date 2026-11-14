@@ -200,7 +200,7 @@ export class SessionState {
 			await this.api.submit(this.id, this.answers());
 			this.state.set("answered");
 		} catch (err) {
-			this.error.set(errorMessage(err, "L'envoi a échoué."));
+			this.error.set(errorMessage(err, "Sending failed."));
 		} finally {
 			this.sending.set(false);
 		}
@@ -219,7 +219,7 @@ export class SessionState {
 			await this.api.decline(this.id, reason);
 			this.state.set("declined");
 		} catch (err) {
-			this.error.set(errorMessage(err, "Le refus n'a pas pu être transmis."));
+			this.error.set(errorMessage(err, "The decline could not be sent."));
 		} finally {
 			this.declineSending.set(false);
 		}

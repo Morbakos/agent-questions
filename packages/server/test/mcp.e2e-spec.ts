@@ -137,13 +137,13 @@ describe("ask_user", () => {
 		const session = (await store.listOpen(LOCAL_USER_ID))[0]!;
 		await store.submit(LOCAL_USER_ID, session.id, {
 			choix: { selected: ["b"], text: "" },
-			libre: { selected: [], text: "parce que" },
+			libre: { selected: [], text: "because" },
 		});
 		const { json } = await pending;
 		expect(json.status).toBe("answered");
 		expect(json.answers).toEqual([
 			{ question_id: "choix", selected: [{ id: "b", label: "B" }] },
-			{ question_id: "libre", selected: [], text: "parce que" },
+			{ question_id: "libre", selected: [], text: "because" },
 		]);
 		expect((await store.get(LOCAL_USER_ID, session.id))?.deliveredAt).not.toBeNull();
 	});
@@ -153,12 +153,12 @@ describe("ask_user", () => {
 		await waitForSession();
 		const session = (await store.listOpen(LOCAL_USER_ID))[0]!;
 		await store.submit(LOCAL_USER_ID, session.id, {
-			choix: { selected: ["b"], text: "", notes: { b: "seulement pour le module X" } },
+			choix: { selected: ["b"], text: "", notes: { b: "only for module X" } },
 			libre: { selected: [], text: "ok" },
 		});
 		const { json } = await pending;
 		expect(json.answers).toMatchObject([
-			{ question_id: "choix", selected: [{ id: "b", label: "B", note: "seulement pour le module X" }] },
+			{ question_id: "choix", selected: [{ id: "b", label: "B", note: "only for module X" }] },
 			{ question_id: "libre" },
 		]);
 	});
@@ -166,8 +166,8 @@ describe("ask_user", () => {
 	it("relays a decline with its reason", async () => {
 		const pending = call("ask_user", { title: "T", questions, wait_seconds: 5 });
 		await waitForSession();
-		await store.decline(LOCAL_USER_ID, (await store.listOpen(LOCAL_USER_ID))[0]!.id, "pas maintenant");
-		expect((await pending).json).toMatchObject({ status: "declined", reason: "pas maintenant" });
+		await store.decline(LOCAL_USER_ID, (await store.listOpen(LOCAL_USER_ID))[0]!.id, "not now");
+		expect((await pending).json).toMatchObject({ status: "declined", reason: "not now" });
 	});
 
 	it("rejects duplicate question ids", async () => {
@@ -191,12 +191,12 @@ describe("update_questions", () => {
 		const edited = await call("update_questions", {
 			session_id: id,
 			title: "T2",
-			questions: [textQuestion({ prompt: "Reformulée" })],
+			questions: [textQuestion({ prompt: "Reworded" })],
 			wait_seconds: 0,
 		});
 		expect(edited.json).toMatchObject({ status: "pending", session_id: id });
 		expect(await store.get(LOCAL_USER_ID, id)).toMatchObject({ title: "T2", revision: 1 });
-		expect((await store.get(LOCAL_USER_ID, id))?.questions[0]?.prompt).toBe("Reformulée");
+		expect((await store.get(LOCAL_USER_ID, id))?.questions[0]?.prompt).toBe("Reworded");
 	});
 
 	it("announces nothing to tabs: only the page of the session concerned updates", async () => {

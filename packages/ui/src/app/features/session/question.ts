@@ -18,7 +18,7 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 				<h2 class="q-head">{{ question().header }}</h2>
 			}
 			@if (!required()) {
-				<p class="muted small">(facultatif)</p>
+				<p class="muted small">(optional)</p>
 			}
 			<div
 				class="md q-prompt"
@@ -29,7 +29,7 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 				<details
 					class="q-context"
 					open>
-					<summary>Contexte</summary>
+					<summary>Context</summary>
 					<div
 						class="md"
 						[innerHTML]="question().context_markdown | markdown"></div>
@@ -64,7 +64,7 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 								<span class="opt-label">
 									{{ o.label }}
 									@if (o.recommended) {
-										<span class="badge">Recommandé</span>
+										<span class="badge">Recommended</span>
 									}
 								</span>
 								@if (o.description) {
@@ -78,8 +78,8 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 									<textarea
 										class="field"
 										rows="2"
-										placeholder="Précision (facultatif)…"
-										[attr.aria-label]="'Précision sur ' + o.label"
+										placeholder="Note (optional)…"
+										[attr.aria-label]="'Note on ' + o.label"
 										[value]="noteOf(o.id)"
 										(input)="setNote(o.id, $event)"></textarea>
 								} @else {
@@ -88,7 +88,7 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 										class="link"
 										aria-expanded="false"
 										(click)="openNote(o.id)">
-										+ Ajouter une précision
+										+ Add a note
 									</button>
 								}
 							</div>
@@ -96,10 +96,10 @@ const textOf = (event: Event): string => (event.target as HTMLTextAreaElement).v
 					}
 					@if (allowOther()) {
 						<label class="other">
-							<span class="other-label">Autre</span>
+							<span class="other-label">Other</span>
 							<textarea
 								class="field"
-								placeholder="Précisez…"
+								placeholder="Please specify…"
 								[value]="answer().text"
 								(input)="setOther($event)"></textarea>
 						</label>

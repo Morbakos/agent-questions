@@ -63,9 +63,9 @@ describe("UI authentication", () => {
 
 		it("does not redirect to sign-in on a 401 from a protocol-relative URL", () => {
 			TestBed.inject(HttpClient)
-				.get("//autre.example/api")
+				.get("//other.example/api")
 				.subscribe({ error: () => undefined });
-			http.expectOne("//autre.example/api").flush({}, { status: 401, statusText: "Unauthorized" });
+			http.expectOne("//other.example/api").flush({}, { status: 401, statusText: "Unauthorized" });
 			expect(router.navigate).not.toHaveBeenCalled();
 		});
 
@@ -101,9 +101,9 @@ describe("UI authentication", () => {
 
 		it("signs in then loads the identity", async () => {
 			const auth = TestBed.inject(AuthService);
-			const done = auth.login("alice", "mot-de-passe-long");
+			const done = auth.login("alice", "long-password");
 			const request = http.expectOne("/auth/login");
-			expect(request.request.body).toEqual({ username: "alice", password: "mot-de-passe-long" });
+			expect(request.request.body).toEqual({ username: "alice", password: "long-password" });
 			request.flush({ ok: true });
 			await Promise.resolve();
 			http.expectOne("/auth/me").flush(server("member"));
@@ -113,8 +113,8 @@ describe("UI authentication", () => {
 
 		it("opens the session by accepting an invitation", async () => {
 			const auth = TestBed.inject(AuthService);
-			const done = auth.acceptInvitation("jeton/spécial", "mot-de-passe-long");
-			http.expectOne("/auth/invitations/jeton%2Fsp%C3%A9cial").flush({ ok: true });
+			const done = auth.acceptInvitation("token/süper", "long-password");
+			http.expectOne("/auth/invitations/token%2Fs%C3%BCper").flush({ ok: true });
 			await Promise.resolve();
 			http.expectOne("/auth/me").flush(server("member"));
 			await done;

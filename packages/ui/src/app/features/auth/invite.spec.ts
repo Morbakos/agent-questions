@@ -44,35 +44,35 @@ describe("InviteComponent", () => {
 	it("reports an invalid or expired link, without offering a form", async () => {
 		api.invitation.mockRejectedValue(new Error("404"));
 		const { el } = await render();
-		expect(el.querySelector('[role="alert"]')?.textContent).toContain("invalide ou a expiré");
+		expect(el.querySelector('[role="alert"]')?.textContent).toContain("invalid or has expired");
 		expect(el.querySelector("form")).toBeNull();
 	});
 
 	it("rejects a password that is too short or a mismatched confirmation", async () => {
 		api.invitation.mockResolvedValue({ username: "bob" });
 		const { fixture, el } = await render();
-		typeInto(el, 'input[formControlName="password"]', "court");
-		typeInto(el, 'input[formControlName="confirm"]', "court");
+		typeInto(el, 'input[formControlName="password"]', "short");
+		typeInto(el, 'input[formControlName="confirm"]', "short");
 		fixture.detectChanges();
-		expect(button(el, "Créer mon accès").disabled).toBe(true);
+		expect(button(el, "Create my access").disabled).toBe(true);
 
-		typeInto(el, 'input[formControlName="password"]', "un-mot-de-passe-solide");
-		typeInto(el, 'input[formControlName="confirm"]', "un-autre-mot-de-passe");
+		typeInto(el, 'input[formControlName="password"]', "a-solid-password");
+		typeInto(el, 'input[formControlName="confirm"]', "another-password");
 		fixture.detectChanges();
-		expect(button(el, "Créer mon accès").disabled).toBe(true);
-		expect(el.textContent).toContain("sont différents");
+		expect(button(el, "Create my access").disabled).toBe(true);
+		expect(el.textContent).toContain("do not match");
 	});
 
 	it("saves the password then opens the home page, signed in", async () => {
 		api.invitation.mockResolvedValue({ username: "bob" });
 		auth.acceptInvitation.mockResolvedValue(undefined);
 		const { fixture, el } = await render();
-		typeInto(el, 'input[formControlName="password"]', "un-mot-de-passe-solide");
-		typeInto(el, 'input[formControlName="confirm"]', "un-mot-de-passe-solide");
+		typeInto(el, 'input[formControlName="password"]', "a-solid-password");
+		typeInto(el, 'input[formControlName="confirm"]', "a-solid-password");
 		fixture.detectChanges();
-		button(el, "Créer mon accès").click();
+		button(el, "Create my access").click();
 		await fixture.whenStable();
-		expect(auth.acceptInvitation).toHaveBeenCalledWith("t0k3n", "un-mot-de-passe-solide");
+		expect(auth.acceptInvitation).toHaveBeenCalledWith("t0k3n", "a-solid-password");
 		expect(navigate).toHaveBeenCalledWith("/");
 	});
 });

@@ -35,12 +35,12 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
-            echo "::error::Lancer ce workflow sur un tag vX.Y.Z (ref actuelle : $GITHUB_REF)."
+            echo "::error::Run this workflow on a vX.Y.Z tag (current ref: $GITHUB_REF)."
             exit 1
           fi
           expected="v$(node -p "require('./package.json').version")"
           if [[ "$GITHUB_REF_NAME" != "$expected" ]]; then
-            echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à la version de package.json ($expected)."
+            echo "::error::Tag $GITHUB_REF_NAME does not match the package.json version ($expected)."
             exit 1
           fi
 

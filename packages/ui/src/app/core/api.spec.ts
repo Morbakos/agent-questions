@@ -38,11 +38,11 @@ describe("ApiService", () => {
 	it("reads a session", async () => {
 		const result = api.get("s1");
 		http.expectOne({ method: "GET", url: "/api/sessions/s1" }).flush(sessionView());
-		expect((await result).title).toBe("Ma session");
+		expect((await result).title).toBe("My session");
 	});
 
 	it("sends the draft with PUT", async () => {
-		const draft = { choix: { selected: ["a"], text: "" } };
+		const draft = { choice: { selected: ["a"], text: "" } };
 		const result = api.saveDraft("s1", draft);
 		const req = http.expectOne({ method: "PUT", url: "/api/sessions/s1/draft" });
 		expect(req.request.body).toEqual(draft);
@@ -51,7 +51,7 @@ describe("ApiService", () => {
 	});
 
 	it("sends the answers with POST", async () => {
-		const answers = { choix: { selected: ["b"], text: "" } };
+		const answers = { choice: { selected: ["b"], text: "" } };
 		const result = api.submit("s1", answers);
 		const req = http.expectOne({ method: "POST", url: "/api/sessions/s1/answers" });
 		expect(req.request.body).toEqual(answers);
@@ -59,18 +59,18 @@ describe("ApiService", () => {
 		await result;
 	});
 
-	it("passes on the reason for the refusal", async () => {
-		const result = api.decline("s1", "pas le temps");
+	it("passes on the reason for the decline", async () => {
+		const result = api.decline("s1", "no time");
 		const req = http.expectOne({ method: "POST", url: "/api/sessions/s1/decline" });
-		expect(req.request.body).toEqual({ reason: "pas le temps" });
+		expect(req.request.body).toEqual({ reason: "no time" });
 		req.flush({ ok: true });
 		await result;
 	});
 
 	it("rejects the promise when the server responds with an error", async () => {
-		const result = api.get("inconnue");
-		http.expectOne("/api/sessions/inconnue").flush(
-			{ error: "Session introuvable" },
+		const result = api.get("unknown");
+		http.expectOne("/api/sessions/unknown").flush(
+			{ error: "Session not found" },
 			{ status: 404, statusText: "Not Found" },
 		);
 		await expect(result).rejects.toMatchObject({ status: 404 });

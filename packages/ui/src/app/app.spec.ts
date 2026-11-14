@@ -36,7 +36,7 @@ describe("App", () => {
 	it("shows the header with a link to the list", async () => {
 		const { el } = await render();
 		const brand = el.querySelector<HTMLAnchorElement>("a.brand");
-		expect(brand?.textContent).toBe("Questions de l'agent");
+		expect(brand?.textContent).toBe("Agent questions");
 		expect(brand?.getAttribute("href")).toBe("/");
 	});
 
@@ -54,7 +54,7 @@ describe("App", () => {
 
 		isAdmin.set(true);
 		fixture.detectChanges();
-		expect(links()).toEqual(["Sessions", "Utilisateurs", "alice"]);
+		expect(links()).toEqual(["Sessions", "Users", "alice"]);
 		el.querySelector<HTMLButtonElement>(".user button")!.click();
 		expect(auth.logout).toHaveBeenCalledOnce();
 	});
@@ -70,9 +70,9 @@ describe("App", () => {
 	});
 
 	it("offers to go to the new questions, or to ignore them", async () => {
-		offer.set({ sessionId: "abc", title: "Choix du back" });
+		offer.set({ sessionId: "abc", title: "Backend choice" });
 		const { fixture, el } = await render();
-		expect(el.querySelector(".toast")?.textContent).toContain("Choix du back");
+		expect(el.querySelector(".toast")?.textContent).toContain("Backend choice");
 
 		const [go, ignore] = Array.from(el.querySelectorAll<HTMLButtonElement>(".toast button"));
 		go!.click();

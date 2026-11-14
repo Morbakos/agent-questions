@@ -72,8 +72,8 @@ Also:
 
 ## Conventions
 
-Code style is enforced by Prettier and ESLint. Other rules (English for documentation and new comments, French for UI
-texts, no `any`, explicit injections) are in [conventions](docs/development/conventions.md).
+Code style is enforced by Prettier and ESLint. Other rules (everything in English: documentation, comments, UI texts and
+messages, test names; no `any`; explicit injections) are in [conventions](docs/development/conventions.md).
 
 ## Releases
 

@@ -30,7 +30,7 @@ URL `/s/<session_id>`) and one of three statuses:
 | `declined` | You chose not to answer, with an optional reason. Final. |
 
 A session belongs to one user. In the `server` profile nobody else can read or answer it (an admin can only view it, see
-[Accounts and roles](accounts-and-roles.md)). Past sessions are kept and listed under "Historique" (history).
+[Accounts and roles](accounts-and-roles.md)). Past sessions are kept and listed under "History".
 
 ## Questions
 
@@ -47,14 +47,14 @@ a `prompt` and an optional `context_markdown` (shown in an expanded "Contexte" b
 carry a `placeholder` (for `text`).
 
 An option has an `id`, a `label`, an optional `description`, and an optional `recommended` flag. A recommended option
-shows a "Recommandé" badge. It is not preselected.
+shows a "Recommended" badge. It is not preselected.
 
 Three switches, all optional:
 
 - `required` (default `true`): a required question must be answered before you can send. An optional one shows
   "(facultatif)".
 - `allow_other` (default `true`): choice questions get a free-text "Autre" field. `false` removes it.
-- `allow_notes` (default `true`): each option you pick can carry an optional note ("+ Ajouter une précision").
+- `allow_notes` (default `true`): each option you pick can carry an optional note ("+ Add a note").
   `false` removes it.
 
 A question counts as answered when:
@@ -94,8 +94,8 @@ Full schemas: [MCP tools](../reference/mcp-tools.md).
 ## Draft
 
 Every change you make in the form is saved to the server about 600 ms after you stop typing. You can close the tab and
-come back: the form is restored. The footer shows "Brouillon enregistré à HH:mm" ("Draft saved at"), or
-"Brouillon non enregistré" ("Draft not saved") if saving failed.
+come back: the form is restored. The footer shows "Draft saved at HH:mm", or
+"Draft not saved" if saving failed.
 
 ## Revision and edits by the agent
 

@@ -121,14 +121,14 @@ export async function callTool(
 
 export const QUESTIONS = [
 	{
-		id: "base",
-		header: "Base",
-		prompt: "Quelle **base de données** ?",
+		id: "database",
+		header: "Database",
+		prompt: "Which **database**?",
 		type: "single",
 		options: [
 			{ id: "sqlite", label: "SQLite" },
 			{ id: "postgres", label: "PostgreSQL" },
 		],
 	},
-	{ id: "pourquoi", prompt: "Pourquoi ?", type: "text", required: false },
+	{ id: "why", prompt: "Why?", type: "text", required: false },
 ];

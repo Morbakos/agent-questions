@@ -13,7 +13,7 @@ The API is the contract between the server and its own UI. It is stable enough t
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Format         | JSON request and response bodies, UTF-8. Timestamps are integers: milliseconds since the Unix epoch.                                                                          |
 | Caching        | Responses under `/api/` and `/auth/` carry `Cache-Control: no-store`.                                                                                                          |
-| Error body     | `{ "error": "<message>", "details": ["<detail>", ...] }`. `details` is present only for validation errors. Messages are in French.                                            |
+| Error body     | `{ "error": "<message>", "details": ["<detail>", ...] }`. `details` is present only for validation errors.                                            |
 | Identifiers    | Session ids are UUIDs, user ids are UUIDs. Token ids are 16 hex characters.                                                                                                    |
 | Pagination     | Cursor in the `before` query parameter, page size fixed at 50. See [Pagination](#pagination).                                                                                  |
 | Ownership      | A user only sees their own sessions. A session of another user is `404`, never `403`.                                                                                          |
@@ -24,7 +24,7 @@ The API is the contract between the server and its own UI. It is stable enough t
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public             | No credential needed.                                                                                                                                                |
 | UI session         | Server profile: the session cookie obtained by `POST /auth/login` (or by accepting an invitation). Local profile: nothing, every request is the local user.           |
-| UI session, admin  | As above, and the user has the role `admin` (the local user is an admin). Otherwise `403` `Droits insuffisants`.                                                     |
+| UI session, admin  | As above, and the user has the role `admin` (the local user is an admin). Otherwise `403` `Insufficient permissions`.                                                     |
 | API token          | `Authorization: Bearer aq_<id>_<secret>`, server profile only. Accepted **only** on `/mcp`; every UI route answers `401` to a token.                                  |
 
 Missing or invalid credentials give `401` (with the header `WWW-Authenticate: Bearer realm="agent-questions"` when the
@@ -35,9 +35,9 @@ refusal comes from the application's own checks). Clients should rely on the sta
 Applied before routing, in this order:
 
 1. **Host check**: the `Host` header must be one of the accepted hosts (see [Configuration](configuration.md#network-and-security)).
-   Otherwise `403 {"error":"Host non autorisé"}`.
+   Otherwise `403 {"error":"Host not allowed"}`.
 2. **Origin check**: if an `Origin` header is present it must be an accepted origin. Otherwise
-   `403 {"error":"Origin non autorisée"}`.
+   `403 {"error":"Origin not allowed"}`.
 3. **CSRF** (writes): a state-changing request that a browser declares as coming from another site (`Sec-Fetch-Site`
    other than `same-origin`, or an untrusted `Origin`) is refused with `403`, even with a valid cookie. Clients that send
    neither header (curl, MCP clients) pass. Trusted origins: the server itself, `AQ_ALLOWED_ORIGINS`, and the dev-server
@@ -60,7 +60,7 @@ Listing history and the admin session list return a page and a cursor:
 - Pass `?before=<nextBefore>` to get the next page. Omit it for the first page.
 - `nextBefore` is `null` on the last page.
 - `before` is an opaque string `<ms>:<id>` and must match `^\d{1,16}:[A-Za-z0-9_-]{1,64}$`, otherwise
-  `400 {"error":"Curseur invalide"}`. A bare timestamp (the format used before this change) is rejected.
+  `400 {"error":"Invalid cursor"}`. A bare timestamp (the format used before this change) is rejected.
 - The cursor is the keyset `(timestamp, id)` of the last item, compared strictly in descending order. For
   `GET /api/sessions/history` the timestamp is the **closing** time (`answeredAt`); for `GET /api/admin/sessions` it is the
   **creation** time (`createdAt`). The id breaks ties, so sessions sharing the same millisecond are never skipped or
@@ -122,7 +122,7 @@ Any method on `/api`, `/api/*`, `/auth`, `/auth/*`, `/mcp/*`, `/.well-known`, `/
 `/messages` and `/messages/*` that no route handles answers:
 
 ```
-404 {"error":"Route introuvable"}
+404 {"error":"Route not found"}
 ```
 
 without authentication and without `WWW-Authenticate`. This is deliberate: the web UI is a single-page app and the
@@ -150,10 +150,10 @@ Body:
 | Status | When                                                                                                                       |
 | ------ | -------------------------------------------------------------------------------------------------------------------------- |
 | `200`  | `{"ok":true}` and a `Set-Cookie` session cookie (`HttpOnly`, `SameSite=Lax`, `Secure` when `AQ_PUBLIC_URL` is HTTPS).      |
-| `400`  | Invalid body (`Requête invalide`, with `details`).                                                                         |
-| `401`  | `Identifiant ou mot de passe incorrect` ("Wrong username or password"). Same answer for an unknown account, a disabled account, a pending invitation and a wrong password. |
+| `400`  | Invalid body (`Invalid request`, with `details`).                                                                         |
+| `401`  | `Incorrect username or password`. Same answer for an unknown account, a disabled account, a pending invitation and a wrong password. |
 | `403`  | Request declared cross-site by the browser (CSRF).                                                                         |
-| `429`  | `Trop de tentatives de connexion. Réessayez dans quelques minutes.`                                                        |
+| `429`  | `Too many sign-in attempts. Try again in a few minutes.`                                                        |
 
 Rate limit: 10 failed attempts per 15 minutes, counted per lower-cased user name and per client address (see
 `AQ_TRUST_PROXY`). Once reached, even the right password is refused until old attempts age out. The counters are in
@@ -179,7 +179,7 @@ UI session. Returns the caller identity:
 ### `GET /auth/invitations/:token`
 
 Public. `200 {"username":"alice"}` for a valid, unexpired invitation of an enabled account. Otherwise
-`404 {"error":"Invitation invalide ou expirée"}`.
+`404 {"error":"Invalid or expired invitation"}`.
 
 ### `POST /auth/invitations/:token`
 
@@ -191,7 +191,7 @@ all earlier sessions and event streams of the account are closed, the user is si
 | ------ | ----------------------------------------------------------------- |
 | `200`  | Password set, signed in.                                          |
 | `400`  | Password shorter than 10 or longer than 200 characters.           |
-| `404`  | `Invitation invalide ou expirée` (unknown, expired, used, replaced by a newer link, or account disabled). |
+| `404`  | `Invalid or expired invitation` (unknown, expired, used, replaced by a newer link, or account disabled). |
 
 An invitation link is `{AQ_PUBLIC_URL}/invite/<token>`, valid 7 days, single use. Only its SHA-256 is stored.
 
@@ -259,12 +259,12 @@ UI session. Pending sessions of the caller, newest first, as an array of `Sessio
 ### `GET /api/sessions/history`
 
 UI session. Closed (`answered` or `declined`) sessions of the caller, most recently closed first. Query `before`
-(optional). Returns `{ "items": SessionSummary[], "nextBefore": string | null }`, 50 per page. `400 Curseur invalide` on a
+(optional). Returns `{ "items": SessionSummary[], "nextBefore": string | null }`, 50 per page. `400 Invalid cursor` on a
 bad cursor.
 
 ### `GET /api/sessions/:id`
 
-UI session. `200 SessionView`, or `404 {"error":"Session introuvable"}` (unknown or not yours). It never writes to the
+UI session. `200 SessionView`, or `404 {"error":"Session not found"}` (unknown or not yours). It never writes to the
 database, so it is safe to poll (the UI polls it every 5 seconds).
 
 ### `PUT /api/sessions/:id/draft`
@@ -278,9 +278,9 @@ UI session. Saves the in-progress answers. Body: a map of question id to Answer.
 | Status | When                                                          |
 | ------ | ------------------------------------------------------------- |
 | `200`  | `{"ok":true}`.                                                |
-| `400`  | `Brouillon invalide`: the body does not match the Answer map. The content is not checked against the questions. |
-| `404`  | `Session introuvable`.                                        |
-| `409`  | `Cette session est déjà clôturée.`                            |
+| `400`  | `Invalid draft`: the body does not match the Answer map. The content is not checked against the questions. |
+| `404`  | `Session not found`.                                        |
+| `409`  | `This session is already closed.`                            |
 
 ### `POST /api/sessions/:id/answers`
 
@@ -289,26 +289,26 @@ UI session. Submits the final answers; the waiting `ask_user` or `get_answers` c
 | Status | When                                                                                         |
 | ------ | -------------------------------------------------------------------------------------------- |
 | `200`  | `{"ok":true}`. The session becomes `answered`.                                               |
-| `400`  | `Réponses invalides`: body is not an Answer map.                                             |
-| `404`  | `Session introuvable`.                                                                       |
-| `409`  | `Cette session est déjà clôturée.`                                                           |
-| `422`  | `{"error":"Réponses invalides","details":[...]}`: the answers do not satisfy the questions.  |
+| `400`  | `Invalid answers`: body is not an Answer map.                                             |
+| `404`  | `Session not found`.                                                                       |
+| `409`  | `This session is already closed.`                                                           |
+| `422`  | `{"error":"Invalid answers","details":[...]}`: the answers do not satisfy the questions.  |
 
 Validation rules (against the current version of the questions):
 
 - Every required question (`required` not `false`) must be answered. `text`: non-blank text. `single`/`multi`: at
   least one selected option, or non-blank text when the question allows "other" (`allow_other` not `false`).
-  Message: `Réponse manquante : <header or id>`.
-- Each selected id must be an option of the question: `Option inconnue « <id> » pour <question>`.
-- `single` accepts at most one selected option: `Une seule option attendue pour <question>`.
-- A note must refer to a selected option: `Note sans option choisie « <id> » pour <question>`. When `allow_notes` is
-  `false`, a non-blank note is refused: `Notes non autorisées pour <question>`.
-- Every key must be a known question id: `Question inconnue : <id>`.
+  Message: `Missing answer: <header or id>`.
+- Each selected id must be an option of the question: `Unknown option "<id>" for <question>`.
+- `single` accepts at most one selected option: `Only one option expected on <question>`.
+- A note must refer to a selected option: `Note for unselected option "<id>" on <question>`. When `allow_notes` is
+  `false`, a non-blank note is refused: `Notes not allowed on <question>`.
+- Every key must be a known question id: `Unknown question: <id>`.
 
 ### `POST /api/sessions/:id/decline`
 
 UI session. Body (optional): `{ "reason": "<at most 2000 characters>" }`, default empty. `200 {"ok":true}` and the session
-becomes `declined`. `400 Refus invalide`, `404`, `409` as above.
+becomes `declined`. `400 Invalid decline`, `404`, `409` as above.
 
 ### Answering without a browser
 
@@ -329,7 +329,7 @@ question sessions. Events are partitioned per user: a tab only receives the anno
 
 | Frame                                    | When                                                                                                                      |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `: connecté` (comment)                   | On connection.                                                                                                            |
+| `: connected` (comment)                   | On connection.                                                                                                            |
 | `event: new-session` with `data: {"sessionId":"<id>","title":"<title>"}` | An agent created a new session (`ask_user` that created, not resumed). Replayed on connection if announced less than 10 s ago. |
 | `: keepalive` (comment)                  | Every 15 seconds.                                                                                                         |
 
@@ -371,11 +371,11 @@ Body `{ "name": "Claude Code" }` (trimmed, 1 to 60 characters). `201`:
 ```
 
 `token` is shown once; only its SHA-256 hash is stored. It expires after one year and is accepted only on `/mcp`.
-`409 Limite de 20 jetons atteinte : révoquez-en un.` when the user already has 20 tokens. `400` on an invalid name.
+`409 Token limit reached (20): revoke one.` when the user already has 20 tokens. `400` on an invalid name.
 
 ### `DELETE /api/account/tokens/:id`
 
-`200 {"ok":true}`, or `404 {"error":"Jeton introuvable"}` (unknown, or belonging to another user). Revoked tokens are
+`200 {"ok":true}`, or `404 {"error":"Token not found"}` (unknown, or belonging to another user). Revoked tokens are
 refused on `/mcp` immediately.
 
 ## Administration routes (server profile, admin)
@@ -418,23 +418,23 @@ Body:
 }
 ```
 
-The link is returned only once; pass it to the person. `400` on invalid fields, `409 Cet identifiant est déjà utilisé`.
+The link is returned only once; pass it to the person. `400` on invalid fields, `409 This username is already taken`.
 
 ### `POST /api/admin/users/:id/invitation`
 
 No body. `201` with the same `UserInvitation` object, with a **new** link; the previous link stops working. Use it for an
-expired invitation or a forgotten password (accepting it sets a new password). `404 Compte introuvable`.
+expired invitation or a forgotten password (accepting it sets a new password). `404 Account not found`.
 
 ### `PATCH /api/admin/users/:id`
 
 Body: `{ "role"?: "admin" | "member", "disabled"?: boolean, "revokeTokens"?: boolean }`, at least one of `role` / `disabled`
-(else `400`, detail `corps : Rien à modifier`). `200` with the updated `UserSummary`.
+(else `400`, detail `body: Nothing to update`). `200` with the updated `UserSummary`.
 
 - Disabling an account closes its sessions and event streams, deletes its pending invitations, and makes its API tokens
   unusable while it stays disabled. With `"disabled": true` and `"revokeTokens": true`, its API tokens are also deleted
   (re-enabling does not bring them back). `revokeTokens` is ignored without `disabled: true`; it defaults to `false`.
-- `409 Il doit rester au moins un administrateur actif` when the change would leave no enabled admin.
-- `404 Compte introuvable`.
+- `409 At least one active administrator must remain` when the change would leave no enabled admin.
+- `404 Account not found`.
 
 ### `GET /api/admin/sessions`
 
@@ -461,7 +461,7 @@ supervision. Each read is logged at `info` (`supervision` logger) with the admin
 
 ### `GET /api/admin/sessions/:id`
 
-`SessionView` plus `"readOnly": true`, `ownerId` and `ownerUsername`. `404 Session introuvable`. An admin can read the
+`SessionView` plus `"readOnly": true`, `ownerId` and `ownerUsername`. `404 Session not found`. An admin can read the
 session of any user but cannot answer, edit or decline it: the write routes above are limited to the owner.
 
 ## MCP endpoint

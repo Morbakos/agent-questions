@@ -91,7 +91,7 @@ Used by `ask_user.questions` and `update_questions.questions`. Source: `Question
 | `id`          | string  | yes      | 1 to 64 characters. Stable identifier, unique within the question.                                     |
 | `label`       | string  | yes      | 1 to 200 characters.                                                                                   |
 | `description` | string  | no       | At most 2,000 characters.                                                                              |
-| `recommended` | boolean | no       | Shows a "Recommandé" ("Recommended") badge. The option is not preselected. Several options may be marked. |
+| `recommended` | boolean | no       | Shows a "Recommended" badge. The option is not preselected. Several options may be marked. |
 
 ### `wait_seconds`
 
@@ -103,7 +103,7 @@ is used (default `0`). Values above 3600 are rejected by the input schema.
   call, or the server shuts down. It then returns the state at that moment.
 
 While a call waits, the server sends an MCP progress notification right away and then every 15 seconds, if the client
-accepted progress reporting. The messages are in English (`Waiting for the user's answer`). A failed
+accepted progress reporting. The message is `Waiting for the user's answer`. A failed
 notification never interrupts the call.
 
 ## Tools
@@ -118,7 +118,7 @@ Creates a question session and shows it in the web UI, or resumes an existing on
 | Parameter      | Type                              | Required | Default                       | Bounds                                                       |
 | -------------- | --------------------------------- | -------- | ----------------------------- | ------------------------------------------------------------ |
 | `questions`    | array of [Question](#question)    | yes      |                               | 1 to 30 items; question `id`s must be unique.                |
-| `title`        | string                            | no       | `Questions de l'agent`        | At most 120 characters.                                      |
+| `title`        | string                            | no       | `Agent questions`             | At most 120 characters.                                      |
 | `session_id`   | string (UUID)                     | no       | none                          | Session returned by an earlier call.                         |
 | `wait_seconds` | integer                           | no       | `AQ_WAIT_SECONDS` (default 0) | 0 to 3600. See [`wait_seconds`](#wait_seconds).              |
 
@@ -249,7 +249,7 @@ messages from HTTP-style errors reach the agent; any other failure becomes a gen
 | Duplicate question ids                                     | `ask_user`, `update_questions`          | `Duplicate question ids`                                                                           |
 | Unknown `session_id` (or another user's)                   | all                                     | `Unknown session_id: <id>`                                                                         |
 | Session already answered or declined                       | `update_questions`                      | `Session already <answered\|declined>: it cannot be edited. Call get_answers with this session_id.` |
-| Session closed between the check and the update            | `update_questions`                      | `Cette session est déjà clôturée.`                                                                 |
+| Session closed between the check and the update            | `update_questions`                      | `This session is already closed.`                                                                 |
 | 100 pending sessions already                               | `ask_user`                              | `Too many pending sessions (100): ask the user to answer or decline some of them.`                 |
 | Body that is not valid JSON (or empty)                     | all                                     | HTTP `400` with a JSON-RPC error `-32700` (`Parse error: …`) and `id: null`. Not a tool result.    |
 | Missing or invalid credentials                             | all                                     | HTTP `401` on `/mcp` before any tool runs (server profile). Not a tool result.                     |
