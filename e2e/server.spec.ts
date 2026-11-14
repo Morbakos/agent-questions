@@ -168,5 +168,9 @@ test("after the session expires, signing in brings back the requested page", asy
 	await loginAs(page, "admin", ADMIN_PASSWORD);
 	await page.context().clearCookies();
 	await page.goto(`${server.url}/admin/sessions`);
-	await expect(page).toHaveURL(/\/login/);
+	await expect(page).toHaveURL(/\/login\?returnUrl=%2Fadmin%2Fsessions/);
+	await page.getByLabel("Username").fill("admin");
+	await page.getByLabel("Password").fill(ADMIN_PASSWORD);
+	await page.getByRole("button", { name: "Sign in" }).click();
+	await expect(page).toHaveURL(`${server.url}/admin/sessions`);
 });
