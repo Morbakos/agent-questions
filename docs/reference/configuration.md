@@ -16,15 +16,15 @@ For how to deploy each profile, see [Deployment profiles](../operations/deployme
 | Aspect                  | `local` (default)                                                                  | `server`                                                                               |
 | ----------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Intended use            | One user, on their own machine                                                     | Several users, reached over a network behind an HTTPS reverse proxy                    |
-| Accounts and login      | None. Every request is the implicit user `local` (role `admin`)                    | Accounts with passwords, session cookie for the UI, personal API tokens for `/mcp`     |
+| Accounts and login      | None. Every request is the implicit user `local` (role `admin`)                    | Accounts with passwords, session cookie for the UI, personal API tokens for `/api/mcp`     |
 | Listening address       | Loopback only (`127.0.0.1`, `::1`, `localhost`), or `0.0.0.0` inside a container   | Any address                                                                            |
 | Required variables      | None                                                                               | `AQ_PUBLIC_URL`, `AQ_DATA_DIR`                                                         |
 | Public URL scheme       | Any                                                                                | HTTPS, unless the host is loopback                                                     |
 | Browser auto-open       | Yes, unless `AQ_NO_OPEN=1`                                                         | Never (forced)                                                                         |
 | First administrator     | Not applicable                                                                     | Created at first start if the database has no account (see `AQ_ADMIN_*`)               |
-| Account routes          | Answer `404` (`/auth/login`, `/api/account/*`, `/api/admin/users`, invitations)     | Available                                                                              |
+| Account routes          | Answer `404` (`/api/auth/login`, `/api/account/*`, `/api/admin/users`, invitations)     | Available                                                                              |
 | Session cookie `Secure` | Not applicable                                                                     | Set when `AQ_PUBLIC_URL` starts with `https:`                                          |
-| `/mcp` authentication   | Local user                                                                         | `Authorization: Bearer aq_...` (API token)                                             |
+| `/api/mcp` authentication   | Local user                                                                         | `Authorization: Bearer aq_...` (API token)                                             |
 
 Authentication details: [Authentication](../development/authentication.md) and
 [Accounts and roles](../guide/accounts-and-roles.md).
@@ -66,8 +66,8 @@ It also uses `AQ_PORT` and `AQ_DATA_DIR`, and passes its whole environment to th
 
 | Variable     | Default                    | Effect                                                                                                 |
 | ------------ | -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `AQ_MCP_URL` | `http://127.0.0.1:<AQ_PORT>/mcp` | Full URL of `/mcp`. A non-loopback host is never started locally: the launcher only attaches to it. |
-| `AQ_TOKEN`   | unset                      | API token sent as `Authorization: Bearer <token>` to `/mcp`.                                           |
+| `AQ_MCP_URL` | `http://127.0.0.1:<AQ_PORT>/api/mcp` | Full URL of `/api/mcp`. A non-loopback host is never started locally: the launcher only attaches to it. |
+| `AQ_TOKEN`   | unset                      | API token sent as `Authorization: Bearer <token>` to `/api/mcp`.                                           |
 
 The server started by the launcher writes its output to `<AQ_DATA_DIR>/server.log` (append) and uses
 `<AQ_DATA_DIR>/launcher.lock` to serialise concurrent starts.
@@ -103,7 +103,7 @@ administrator.
 
 | Variable | Default | Accepted values                                                   | Profile | Effect                                                                                                             |
 | -------- | ------- | ----------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| `AQ_LOG` | `info`  | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`      | both    | Log level of the single application logger. `debug` adds one line per HTTP request (except `/health`). `silent` disables all application logs (a configuration error is still printed on stderr). `trace` maps to Nest's `verbose` level. |
+| `AQ_LOG` | `info`  | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`      | both    | Log level of the single application logger. `debug` adds one line per HTTP request (except `/api/health`). `silent` disables all application logs (a configuration error is still printed on stderr). `trace` maps to Nest's `verbose` level. |
 
 ### Container and build variables
 

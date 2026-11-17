@@ -11,9 +11,9 @@ interface InspectorRun {
 	done: Promise<{ code: number | null; stdout: string; stderr: string }>;
 }
 
-/** Runs the MCP Inspector CLI (`--cli`) against `/mcp`: a third-party MCP client sharing nothing with our code. */
+/** Runs the MCP Inspector CLI (`--cli`) against `/api/mcp`: a third-party MCP client sharing nothing with our code. */
 function inspector({ url }: Pick<RunningServer, "url">, method: string, toolArgs: string[] = []): InspectorRun {
-	const args = [INSPECTOR, "--cli", `${url}/mcp`, "--transport", "http", "--method", method, ...toolArgs];
+	const args = [INSPECTOR, "--cli", `${url}/api/mcp`, "--transport", "http", "--method", method, ...toolArgs];
 	const child = spawn(process.execPath, args, { stdio: ["ignore", "pipe", "pipe"] });
 	let stdout = "";
 	let stderr = "";

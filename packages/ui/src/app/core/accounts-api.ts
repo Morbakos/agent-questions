@@ -16,7 +16,7 @@ export class AccountsApi {
 	private http = inject(HttpClient);
 
 	invitation(token: string) {
-		return firstValueFrom(this.http.get<InvitationInfo>(`/auth/invitations/${encodeURIComponent(token)}`));
+		return firstValueFrom(this.http.get<InvitationInfo>(`/api/auth/invitations/${encodeURIComponent(token)}`));
 	}
 	users() {
 		return firstValueFrom(this.http.get<UserSummary[]>("/api/admin/users"));

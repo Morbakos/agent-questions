@@ -11,7 +11,7 @@ export function safeReturnUrl(value: unknown): string {
 
 /** Routes and calls that must remain reachable without a session (sign-in, invitation). */
 const PUBLIC_ROUTES = ["/login", "/invite/"];
-const PUBLIC_CALLS = ["/auth/login", "/auth/invitations/", "/auth/me"];
+const PUBLIC_CALLS = ["/api/auth/login", "/api/auth/invitations/", "/api/auth/me"];
 
 /**
  * Current identity. The browser never handles a token: the session is an `HttpOnly` cookie set by the
@@ -31,7 +31,7 @@ export class AuthService {
 	load(): Promise<void> {
 		this.loading ??= (async () => {
 			try {
-				this.me.set(await firstValueFrom(this.http.get<AuthMe>("/auth/me")));
+				this.me.set(await firstValueFrom(this.http.get<AuthMe>("/api/auth/me")));
 			} catch {
 				// No session (401) or server unreachable: "unknown" identity. The guards and the following calls
 				// decide on the redirect to /login.
@@ -45,20 +45,20 @@ export class AuthService {
 
 	/** Signs in (the server sets the session cookie) then loads the identity. Rejects with the HTTP error on failure. */
 	async login(username: string, password: string): Promise<void> {
-		await firstValueFrom(this.http.post("/auth/login", { username, password }));
+		await firstValueFrom(this.http.post("/api/auth/login", { username, password }));
 		await this.load();
 	}
 
 	/** The server opens the session at the same time as it stores the password chosen by the invitee. */
 	async acceptInvitation(token: string, password: string): Promise<void> {
-		await firstValueFrom(this.http.post(`/auth/invitations/${encodeURIComponent(token)}`, { password }));
+		await firstValueFrom(this.http.post(`/api/auth/invitations/${encodeURIComponent(token)}`, { password }));
 		await this.load();
 	}
 
 	/** Always ends locally (clears the identity, goes to `/login`) even if the server call fails. */
 	async logout(): Promise<void> {
 		try {
-			await firstValueFrom(this.http.post("/auth/logout", {}));
+			await firstValueFrom(this.http.post("/api/auth/logout", {}));
 		} catch {
 			/* session already expired or server unreachable: we leave the interface anyway */
 		}

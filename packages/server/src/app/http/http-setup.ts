@@ -3,13 +3,14 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import type { AppConfig } from "@app/config/config.js";
 import { hostsOf, originsOf } from "@app/http/allowed.js";
+import { API_PREFIX, HEALTH_PATH, MCP_PATH } from "@app/http/api-prefix.js";
 import { redactUrl } from "@app/http/redact-url.js";
 
 /**
  * Installs the HTTP guard on Fastify (the Angular UI is served by `@nestjs/serve-static`, see `AppModule`).
  *
- * Registers Fastify hooks: Host/Origin check (403, runs before everything else, `/health` included), `no-store` on
- * `/api` and `/auth`, and request/denial logging. A request without `Origin` (non-browser client) passes.
+ * Registers Fastify hooks: Host/Origin check (403, runs before everything else, `/api/health` included), `no-store`
+ * on `/api`, and request/denial logging. A request without `Origin` (non-browser client) passes.
  */
 export async function configureHttp(app: NestFastifyApplication, config: AppConfig): Promise<void> {
 	const fastify = app.getHttpAdapter().getInstance() as FastifyInstance;
@@ -19,7 +20,7 @@ export async function configureHttp(app: NestFastifyApplication, config: AppConf
 	// Security headers (nosniff, anti-framing, referrer, CSP, HSTS) are set by `app.useSecurityHeaders()`
 	// (`application.ts`). What remains is `no-store` on the API and authentication, which no Nest package sets globally.
 	fastify.addHook("onSend", async (request, reply) => {
-		if (/^\/(api|auth)\//.test(request.url)) {
+		if (request.url.startsWith(`/${API_PREFIX}/`)) {
 			reply.header("cache-control", "no-store");
 		}
 	});
@@ -28,7 +29,7 @@ export async function configureHttp(app: NestFastifyApplication, config: AppConf
 	// `{ statusCode, message }` payload. Turn it into a JSON-RPC parse error so an MCP client can read it. Errors
 	// raised by the MCP transport itself are already JSON-RPC (and hijacked: they never reach this hook).
 	fastify.addHook("onSend", async (request, reply, payload) => {
-		if (reply.statusCode !== 400 || !/^\/mcp(\?|$)/.test(request.url) || typeof payload !== "string") {
+		if (reply.statusCode !== 400 || request.url.split("?")[0] !== MCP_PATH || typeof payload !== "string") {
 			return payload;
 		}
 		try {
@@ -62,7 +63,7 @@ export async function configureHttp(app: NestFastifyApplication, config: AppConf
 		if (reply.statusCode === 401 || reply.statusCode === 403) {
 			audit.warn(`${reply.statusCode} ${request.method} ${path}`);
 		}
-		if (path !== "/health") {
+		if (path !== HEALTH_PATH) {
 			requests.debug(`${request.method} ${path} ${reply.statusCode} ${Math.round(reply.elapsedTime)}ms`);
 		}
 	});

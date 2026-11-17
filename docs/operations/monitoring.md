@@ -3,10 +3,10 @@
 ## Health endpoint
 
 ```bash
-curl -i http://127.0.0.1:4317/health
+curl -i http://127.0.0.1:4317/api/health
 ```
 
-`GET /health` is public (no authentication), is never journalised, and is built on `@nestjs/terminus`:
+`GET /api/health` is public (no authentication), is never journalised, and is built on `@nestjs/terminus`:
 
 | Status | Meaning                                                                      |
 | ------ | ---------------------------------------------------------------------------- |
@@ -45,15 +45,15 @@ Each line carries a logger name:
 | `auth`        | warn  | `401` / `403` responses: status, method and path, never a secret                              |
 | `auth`        | log   | First administrator created; sessions adopted from the `local` profile                        |
 | `auth`        | warn  | The generated first-administrator password (once, when `AQ_ADMIN_PASSWORD` is unset)          |
-| `http`        | debug | `METHOD /path status duration` for each request except `/health`. Invitation tokens are masked |
+| `http`        | debug | `METHOD /path status duration` for each request except `/api/health`. Invitation tokens are masked |
 | `mcp`         | log   | An agent starts waiting on a session (with its delay), a wait ends, questions were updated    |
 | `supervision` | log   | An administrator lists or opens other users' sessions                                         |
 
-Successful `/mcp` calls do not appear in the `http` lines (the MCP transport answers outside Fastify's response hook);
+Successful `/api/mcp` calls do not appear in the `http` lines (the MCP transport answers outside Fastify's response hook);
 the `mcp` logger covers the waits instead.
 
 Signals worth alerting on: repeated `401` / `403` lines from one address (guessing attempts; the sign-in throttle
-answers `429` after 10 failures in 15 minutes), `503` on `/health`, a restart loop, and a startup `Invalid
+answers `429` after 10 failures in 15 minutes), `503` on `/api/health`, a restart loop, and a startup `Invalid
 configuration` message.
 
 ## Database size

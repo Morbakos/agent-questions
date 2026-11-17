@@ -31,7 +31,7 @@ describe("request body size", () => {
 	const mcpCall = (padBytes: number) =>
 		inject({
 			method: "POST",
-			url: "/mcp",
+			url: "/api/mcp",
 			headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 			payload: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping", pad: "x".repeat(padBytes) }),
 		});
@@ -46,12 +46,12 @@ describe("request body size", () => {
 		expect((await mcpCall(11 * 1024 * 1024))?.statusCode).toBe(413);
 	});
 
-	it("answers an invalid or empty JSON body on /mcp with a JSON-RPC parse error", async () => {
+	it("answers an invalid or empty JSON body on /api/mcp with a JSON-RPC parse error", async () => {
 		await start();
 		for (const payload of ["{not json", ""]) {
 			const response = await inject({
 				method: "POST",
-				url: "/mcp",
+				url: "/api/mcp",
 				headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 				payload,
 			});
@@ -83,7 +83,7 @@ describe("security headers", () => {
 		await start({ baseUrl: "https://questions.example.com" });
 		const response = await inject({
 			method: "GET",
-			url: "/health",
+			url: "/api/health",
 			headers: { host: "questions.example.com" },
 		});
 		expect(response?.headers["strict-transport-security"]).toContain("max-age=");
@@ -106,11 +106,11 @@ describe("CORS", () => {
 		expect(response?.headers["access-control-allow-credentials"]).toBe("true");
 	});
 
-	it("sets the CORS headers on a /mcp response too (which @nestjs/mcp writes on reply.raw, after a hijack)", async () => {
+	it("sets the CORS headers on an /api/mcp response too (which @nestjs/mcp writes on reply.raw, after a hijack)", async () => {
 		await start({ allowedOrigins: ["https://ui.example.com"] });
 		const response = await inject({
 			method: "POST",
-			url: "/mcp",
+			url: "/api/mcp",
 			headers: {
 				origin: "https://ui.example.com",
 				"content-type": "application/json",
@@ -127,14 +127,7 @@ describe("CORS", () => {
 describe("unknown routes", () => {
 	it("answers 404 as JSON for an unknown API or OAuth discovery route, instead of the UI page", async () => {
 		await start();
-		for (const url of [
-			"/api/nope",
-			"/auth/nope",
-			"/mcp/extra",
-			"/.well-known/oauth-protected-resource",
-			"/sse",
-			"/messages",
-		]) {
+		for (const url of ["/api/nope", "/api/auth/nope", "/api/mcp/extra", "/.well-known/oauth-protected-resource"]) {
 			const response = await inject({ method: "GET", url });
 			expect(response?.statusCode, url).toBe(404);
 			expect(response?.json()).toEqual({ error: "Route not found" });
@@ -156,7 +149,7 @@ describe("session decline", () => {
 
 describe("logs", () => {
 	it("masks an invitation token in the logged URL", () => {
-		expect(redactUrl("/auth/invitations/abcDEF123_-?x=1")).toBe("/auth/invitations/[masked]?x=1");
+		expect(redactUrl("/api/auth/invitations/abcDEF123_-?x=1")).toBe("/api/auth/invitations/[masked]?x=1");
 		expect(redactUrl("/api/sessions")).toBe("/api/sessions");
 		expect(redactUrl(undefined)).toBeUndefined();
 	});

@@ -48,7 +48,7 @@ try {
 	while (Date.now() < deadline) {
 		if (server.exitCode !== null) throw new Error(`Installed package exited with ${server.exitCode}`);
 		try {
-			const response = await fetch(baseUrl + "/health");
+			const response = await fetch(baseUrl + "/api/health");
 			if (response.ok) {
 				healthy = true;
 				break;
@@ -65,7 +65,7 @@ try {
 	}
 
 	// Exercise the current SDK's legacy stateless compatibility path, which keeps older MCP clients working.
-	const initialize = await fetch(baseUrl + "/mcp", {
+	const initialize = await fetch(baseUrl + "/api/mcp", {
 		method: "POST",
 		headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 		body: JSON.stringify({

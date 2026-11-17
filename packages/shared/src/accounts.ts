@@ -33,7 +33,7 @@ export const UpdateUserSchema = z
 	.refine((value) => value.role !== undefined || value.disabled !== undefined, "Nothing to update");
 export const CreateApiTokenSchema = z.object({ name: z.string().trim().min(1).max(60) });
 
-/** Identity of the caller as exposed by `GET /auth/me`. */
+/** Identity of the caller as exposed by `GET /api/auth/me`. */
 export interface AuthMe {
 	mode: "local" | "server";
 	userId: string;

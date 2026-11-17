@@ -10,7 +10,7 @@ async function serve(status: number, body: string, delayMs = 0): Promise<URL> {
 		setTimeout(() => response.writeHead(status, { "content-type": "application/json" }).end(body), delayMs);
 	});
 	await new Promise<void>((resolve) => server!.listen(0, "127.0.0.1", resolve));
-	return new URL(`http://127.0.0.1:${(server.address() as AddressInfo).port}/mcp`);
+	return new URL(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/mcp`);
 }
 
 afterEach(() => {
@@ -38,22 +38,22 @@ describe("probeHealth", () => {
 	});
 
 	it("returns false when nothing listens", async () => {
-		expect(await probeHealth(new URL("http://127.0.0.1:1/mcp"))).toBe(false);
+		expect(await probeHealth(new URL("http://127.0.0.1:1/api/mcp"))).toBe(false);
 	});
 });
 
 describe("resolveTarget", () => {
 	it("defaults to the local server on 4317", () => {
-		expect(resolveTarget({})).toEqual({ mcpUrl: new URL("http://127.0.0.1:4317/mcp"), local: true });
+		expect(resolveTarget({})).toEqual({ mcpUrl: new URL("http://127.0.0.1:4317/api/mcp"), local: true });
 	});
 
 	it("follows AQ_PORT", () => {
-		expect(resolveTarget({ AQ_PORT: "5000" }).mcpUrl.href).toBe("http://127.0.0.1:5000/mcp");
+		expect(resolveTarget({ AQ_PORT: "5000" }).mcpUrl.href).toBe("http://127.0.0.1:5000/api/mcp");
 	});
 
 	it("never starts a server for a remote AQ_MCP_URL", () => {
-		expect(resolveTarget({ AQ_MCP_URL: "https://aq.example.com/mcp" }).local).toBe(false);
-		expect(resolveTarget({ AQ_MCP_URL: "http://localhost:9/mcp" }).local).toBe(true);
+		expect(resolveTarget({ AQ_MCP_URL: "https://aq.example.com/api/mcp" }).local).toBe(false);
+		expect(resolveTarget({ AQ_MCP_URL: "http://localhost:9/api/mcp" }).local).toBe(true);
 	});
 
 	it("rejects invalid values", () => {

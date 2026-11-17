@@ -7,11 +7,11 @@ server from starting and the error (`Invalid configuration: ...`) names the vari
 | Aspect             | `local`                                         | `server`                                                   |
 | ------------------ | ----------------------------------------------- | ---------------------------------------------------------- |
 | Intended for       | One user on their own machine                   | Several users over a network                               |
-| Authentication     | None: one fixed implicit user                   | Accounts, passwords, session cookie, API tokens for `/mcp` |
+| Authentication     | None: one fixed implicit user                   | Accounts, passwords, session cookie, API tokens for `/api/mcp` |
 | Bind address       | Loopback only (`127.0.0.1`, `::1`, `localhost`) | Any (`AQ_BIND_HOST`)                                       |
 | Browser auto-open  | Yes, unless `AQ_NO_OPEN=1`                      | Never                                                      |
 | Required variables | None                                            | `AQ_PUBLIC_URL` (HTTPS), `AQ_DATA_DIR`                     |
-| `/mcp` access      | Open to whoever can reach the port              | `Authorization: Bearer aq_...` API token                   |
+| `/api/mcp` access      | Open to whoever can reach the port              | `Authorization: Bearer aq_...` API token                   |
 
 ## Local profile
 

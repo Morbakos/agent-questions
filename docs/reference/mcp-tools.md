@@ -9,11 +9,11 @@ them (sessions, waiting, idempotent resume) see [Concepts](../guide/concepts.md)
 
 | Item              | Value                                                                                                                                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Endpoint          | `POST {AQ_PUBLIC_URL}/mcp` (MCP Streamable HTTP, default `http://127.0.0.1:4317/mcp`)                                                                                                                  |
+| Endpoint          | `POST {AQ_PUBLIC_URL}/api/mcp` (MCP Streamable HTTP, default `http://127.0.0.1:4317/api/mcp`)                                                                                                                  |
 | Server name       | `agent-questions`                                                                                                                                                                                      |
 | State             | Stateless: no `Mcp-Session-Id`, one MCP server and one transport per request                                                                                                                           |
 | Request headers   | `Content-Type: application/json`, `Accept: application/json, text/event-stream`                                                                                                                        |
-| Authentication    | Local profile: none (the local user). Server profile: `Authorization: Bearer aq_<id>_<secret>` (a personal API token, see [Accounts and roles](../guide/accounts-and-roles.md)). A session cookie is refused on `/mcp`. |
+| Authentication    | Local profile: none (the local user). Server profile: `Authorization: Bearer aq_<id>_<secret>` (a personal API token, see [Accounts and roles](../guide/accounts-and-roles.md)). A session cookie is refused on `/api/mcp`. |
 | Server `instructions` | Sent only when the browser is not opened automatically (`AQ_NO_OPEN=1`, or the server profile): it asks the agent to give the user the list address before calling `ask_user`.                     |
 
 The owner of a session is the authenticated user of the HTTP request, never a tool argument. A session that belongs
@@ -33,7 +33,7 @@ the flag.
 Any MCP client works. With plain HTTP:
 
 ```bash
-curl -s -X POST http://127.0.0.1:4317/mcp \
+curl -s -X POST http://127.0.0.1:4317/api/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{
@@ -252,7 +252,7 @@ messages from HTTP-style errors reach the agent; any other failure becomes a gen
 | Session closed between the check and the update            | `update_questions`                      | `This session is already closed.`                                                                 |
 | 100 pending sessions already                               | `ask_user`                              | `Too many pending sessions (100): ask the user to answer or decline some of them.`                 |
 | Body that is not valid JSON (or empty)                     | all                                     | HTTP `400` with a JSON-RPC error `-32700` (`Parse error: …`) and `id: null`. Not a tool result.    |
-| Missing or invalid credentials                             | all                                     | HTTP `401` on `/mcp` before any tool runs (server profile). Not a tool result.                     |
+| Missing or invalid credentials                             | all                                     | HTTP `401` on `/api/mcp` before any tool runs (server profile). Not a tool result.                     |
 
 The 100-session cap is per user and counts only `pending` sessions.
 

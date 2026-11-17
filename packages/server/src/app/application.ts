@@ -7,6 +7,8 @@ import { loadConfig } from "@app/config/config.js";
 import { AppModule } from "./app.module.js";
 import type { CoreOptions } from "@app/core/core.module.js";
 import { HttpErrorFilter } from "@app/http/http-error.filter.js";
+import { API_PREFIX } from "@app/http/api-prefix.js";
+import { WELL_KNOWN_ROUTES } from "@app/http/unknown-route.controller.js";
 import { configureHttp } from "@app/http/http-setup.js";
 import { originsOf } from "@app/http/allowed.js";
 import { nestLogLevels } from "@app/http/log-levels.js";
@@ -46,6 +48,9 @@ export function createFastifyAdapter({ trustProxy }: AppConfig): FastifyAdapter 
  */
 export async function setupApplication(app: NestFastifyApplication, config: AppConfig): Promise<void> {
 	app.useLogger(nestLogLevels(config.logLevel));
+	// One prefix for the whole back (MCP included). Only the OAuth discovery probes of MCP clients, which always hit the
+	// origin root, stay outside (answered by `UnknownRouteController`).
+	app.setGlobalPrefix(API_PREFIX, { exclude: WELL_KNOWN_ROUTES });
 	app.useGlobalFilters(new HttpErrorFilter(), new AuthErrorFilter());
 	// CSRF: a write that a browser declares as coming from another origin is refused (403). Clients without a browser
 	// (MCP agents, curl) send neither `Sec-Fetch-Site` nor `Origin` and get through.

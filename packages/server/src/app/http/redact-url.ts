@@ -4,4 +4,4 @@
  * Always pass URLs through it before logging.
  */
 export const redactUrl = (url: string | undefined): string | undefined =>
-	url?.replace(/(\/auth\/invitations\/)[^/?#]+/, "$1[masked]");
+	url?.replace(/(\/api\/auth\/invitations\/)[^/?#]+/, "$1[masked]");

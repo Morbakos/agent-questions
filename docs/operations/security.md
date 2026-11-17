@@ -12,7 +12,7 @@ the listener being loopback-only (any other `AQ_BIND_HOST` is refused, except `0
 and on the `Host` / `Origin` guard below, which stops a malicious web page from reaching the server through DNS
 rebinding or cross-origin requests from the user's browser.
 
-Out of scope: other users or processes on the same machine can use the API and `/mcp`. Never put a proxy, tunnel or
+Out of scope: other users or processes on the same machine can use the API and `/api/mcp`. Never put a proxy, tunnel or
 public port in front of this profile.
 
 ### Server profile
@@ -24,7 +24,7 @@ Several users, possibly hostile to each other, over a network, with the server b
 - **Administrators see everything, read-only.** An admin can list and open every user's sessions, not answer or edit
   them. Each such read is logged (`supervision` logger: `<admin> is viewing the sessions of all users` / `<admin> is
   viewing session <id>`).
-- **Agent tokens are narrow**: an API token authenticates `/mcp` only. It cannot call the UI API, manage accounts or
+- **Agent tokens are narrow**: an API token authenticates `/api/mcp` only. It cannot call the UI API, manage accounts or
   create tokens.
 - **Untrusted agent content**: question text is markdown written by an agent. The UI renders it with `marked` followed
   by Angular's sanitiser and never bypasses it.
@@ -57,11 +57,11 @@ Behind a proxy, set `AQ_TRUST_PROXY` correctly or the per-address throttle is sh
   takes exact origins and refuses wildcards at startup.
 - **CSRF**: `Sec-Fetch-Site` / `Origin` are checked on writes: a browser declaring another origin gets `403`. Clients
   without a browser (agents, curl) send neither header and pass; they are authenticated by token anyway.
-- **CORS**: only the origins above, with credentials, on the API and on `/mcp`. A pre-flight needs
+- **CORS**: only the origins above, with credentials, on the API and on `/api/mcp`. A pre-flight needs
   `Access-Control-Request-Method`.
-- **Auth guard**: global. Every route needs authentication except those explicitly public (`/health`, sign-in,
+- **Auth guard**: global. Every route needs authentication except those explicitly public (`/api/health`, sign-in,
   invitation acceptance, unknown-route 404s). Every UI controller is restricted to cookie sessions.
-- **Unknown routes** under `/api`, `/auth`, `/mcp/*`, `/.well-known`, `/sse` and `/messages` return a JSON `404` rather than the UI page.
+- **Unknown routes** under `/api` and `/.well-known` return a JSON `404` rather than the UI page.
 
 ## Response headers
 
@@ -71,7 +71,7 @@ Behind a proxy, set `AQ_TRUST_PROXY` correctly or the per-address throttle is sh
   include `upgrade-insecure-requests`, so the UI keeps working over HTTP on localhost.
 - `X-Frame-Options: DENY`.
 - `Strict-Transport-Security: max-age=31536000` only when `AQ_PUBLIC_URL` is HTTPS.
-- `Cache-Control: no-store` on everything under `/api/` and `/auth/`.
+- `Cache-Control: no-store` on everything under `/api/`.
 
 A proxy that adds its own CSP or removes these headers will weaken or break the UI; if you add headers, test the UI.
 
@@ -79,7 +79,7 @@ A proxy that adds its own CSP or removes these headers will weaken or break the 
 
 - Failed authorisation (`401`, `403`) is logged at `warn` with method and path only (`auth` logger): never a token,
   cookie or password.
-- Request lines (`debug` level) hide the secret in `/auth/invitations/<token>` as `[masked]`.
+- Request lines (`debug` level) hide the secret in `/api/auth/invitations/<token>` as `[masked]`.
 - Invitation links, API tokens and passwords are not logged. **Exception**: when `AQ_ADMIN_PASSWORD` is not set, the
   generated first-administrator password is written to the logs once. Rotate it right away and purge those logs if
   they are shipped somewhere shared.

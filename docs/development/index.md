@@ -27,8 +27,8 @@ bun run start   # http://127.0.0.1:4317, UI included
 Check that the server answers:
 
 ```bash
-curl -s http://127.0.0.1:4317/health
-curl -s -X POST http://127.0.0.1:4317/mcp \
+curl -s http://127.0.0.1:4317/api/health
+curl -s -X POST http://127.0.0.1:4317/api/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
@@ -49,7 +49,7 @@ Open `http://localhost:4200`. `AQ_DEV=1` makes the server accept the `localhost:
 
 Things to know:
 
-- The Angular proxy (`packages/ui/proxy.conf.json`) forwards `/api` and `/auth` to the server on `:4317`. For the `server` profile, start the server with `AQ_DEV=1` (see `dev:server`) so the `http://localhost:4200` origin is accepted, then sign in through `:4200`. The Playwright suite and a built bundle (`bun run build`, then `bun run start`) remain the reference for the `server` profile.
+- The Angular proxy (`packages/ui/proxy.conf.json`) forwards `/api` to the server on `:4317`. For the `server` profile, start the server with `AQ_DEV=1` (see `dev:server`) so the `http://localhost:4200` origin is accepted, then sign in through `:4200`. The Playwright suite and a built bundle (`bun run build`, then `bun run start`) remain the reference for the `server` profile.
 - You can also skip `dev:ui`: once `ng build` has produced `packages/ui/dist/ui/browser`, the dev server serves that build itself.
 - The server only needs a restart to pick up configuration changes. Tool descriptions are computed once per process (see [Waiting for answers](waiting-for-answers.md)).
 

@@ -31,7 +31,7 @@ Why the default is 0: a blocked tool call freezes the agent, and many clients im
    - the MCP client aborts the call (`context.signal`);
    - the server starts shutting down (`beforeApplicationShutdown` finishes every waiter while the database is still open).
 
-During the wait, `waitAndRespond` sends an MCP progress notification right away and every 15 seconds, so clients that asked for progress keep the connection alive. The SDK also sends an SSE `: keepalive` every 15 seconds on `/mcp`; do not add another one.
+During the wait, `waitAndRespond` sends an MCP progress notification right away and every 15 seconds, so clients that asked for progress keep the connection alive. The SDK also sends an SSE `: keepalive` every 15 seconds on `/api/mcp`; do not add another one.
 
 The emitter is process memory, so the design requires the API and the MCP handler to share one process (see [Architecture](architecture.md#one-process)).
 

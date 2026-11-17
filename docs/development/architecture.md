@@ -2,12 +2,12 @@
 
 ## One process
 
-Everything runs in a single HTTP process: the web UI, the UI's API, the SQLite database and the `/mcp` endpoint. Every agent connects to that same process (a Docker container with `restart: unless-stopped`, or `bun run start` from a clone).
+Everything runs in a single HTTP process: the web UI, the UI's API, the SQLite database and the `/api/mcp` endpoint. Every agent connects to that same process (a Docker container with `restart: unless-stopped`, or `bun run start` from a clone).
 
 ```text
             Agent (Claude Code, Codex, ...)                Browser (Angular UI)
                       |                                           |
-        POST /mcp (Streamable HTTP)              /api/*, /auth/*, GET /api/events (SSE), static files
+        POST /api/mcp (Streamable HTTP)              /api/*, /api/auth/*, GET /api/events (SSE), static files
                       |                                           |
         +-------------v-------------------------------------------v--------------+
         |  Fastify + NestJS                                                       |
@@ -51,7 +51,7 @@ If `wait_seconds` is 0 or the delay runs out first, the agent gets `pending` wit
 
 ## Stateless MCP
 
-The server keeps no MCP protocol session between requests: everything an agent needs lives in SQLite, addressed by `session_id`. An agent can reconnect, restart or call `get_answers` from a different process and still find its session. The `/mcp` route itself is provided by `@nestjs/mcp` (pinned, see [Server](server.md#nest-package-first)); `scripts/verify-package.ts` checks an `initialize` request against it on both Node and Bun.
+The server keeps no MCP protocol session between requests: everything an agent needs lives in SQLite, addressed by `session_id`. An agent can reconnect, restart or call `get_answers` from a different process and still find its session. The `/api/mcp` route itself is provided by `@nestjs/mcp` (pinned, see [Server](server.md#nest-package-first)); `scripts/verify-package.ts` checks an `initialize` request against it on both Node and Bun.
 
 ## Idempotent resume
 
@@ -80,16 +80,16 @@ The UI decides what to do with an announcement: see [UI](ui.md#following-the-age
 
 ```text
 Fastify onRequest hook      Host and Origin must be known (403 otherwise)
-CORS (enableCors)           only allowed origins; also applies to /mcp
+CORS (enableCors)           only allowed origins; also applies to /api/mcp
 CSRF (enableCsrfProtection) browser writes from another origin are refused
 Global auth guard           every route needs a provider, except @Public()
 @SessionOnly()              UI controllers: cookie or local user, never an API token
 @Roles("admin")             admin routes
 Controller -> Service -> Repository
-Fastify onSend / onResponse no-store on /api and /auth; request log at debug; 401/403 logged
+Fastify onSend / onResponse no-store on /api; request log at debug; 401/403 logged
 ```
 
-Static UI files come from `@nestjs/serve-static` (with `fallthrough: true`, serving `index.html` for Angular routes). That loader ignores its `exclude` option, so `UnknownRouteController` answers a JSON 404 under `/api`, `/auth`, `/mcp/*`, `/.well-known`, `/sse` and `/messages` (the last two are the unsupported legacy HTTP+SSE transport). Without it an MCP client probing OAuth discovery or falling back to SSE would receive the UI's HTML or a 401 and abort.
+Static UI files come from `@nestjs/serve-static` (with `fallthrough: true`, serving `index.html` for Angular routes). That loader ignores its `exclude` option, so `UnknownRouteController` answers a JSON 404 under `/api/*` (every back route lives under the global prefix `api`, set by `app.setGlobalPrefix`, MCP endpoint included) and under `/.well-known` (excluded from the prefix). Without it an MCP client probing OAuth discovery would receive the UI's HTML or a 401 and abort.
 
 ## Single connection, one writer
 

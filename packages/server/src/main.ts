@@ -31,9 +31,9 @@ await app.listen(config.port, config.host);
 console.log(`
 Agent Questions ready (${config.deploymentMode} profile).
   UI        ${config.baseUrl}
-  MCP       ${config.baseUrl}/mcp (MCP Streamable HTTP)
+  MCP       ${config.baseUrl}/api/mcp (MCP Streamable HTTP)
   Database  ${config.dbFile}
 
 Listening on ${config.host}:${config.port}
-Claude Code : claude mcp add --transport http agent-questions http://127.0.0.1:${config.port}/mcp
+Claude Code : claude mcp add --transport http agent-questions http://127.0.0.1:${config.port}/api/mcp
 `);

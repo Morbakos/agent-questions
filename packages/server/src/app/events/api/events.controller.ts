@@ -8,7 +8,7 @@ import { UiHub } from "@app/events/ui-hub.js";
 
 /** Stream of UI events (Nest's `@Sse()`): announces new sessions, closed on sign-out. */
 @SessionOnly()
-@Controller("api/events")
+@Controller("events")
 export class EventsController {
 	constructor(@Inject(UiHub) private readonly hub: UiHub) {}
 

@@ -12,7 +12,7 @@ The API is the contract between the server and its own UI. It is stable enough t
 | Topic          | Rule                                                                                                                                                                           |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Format         | JSON request and response bodies, UTF-8. Timestamps are integers: milliseconds since the Unix epoch.                                                                          |
-| Caching        | Responses under `/api/` and `/auth/` carry `Cache-Control: no-store`.                                                                                                          |
+| Caching        | Responses under `/api/` carry `Cache-Control: no-store`.                                                                                                          |
 | Error body     | `{ "error": "<message>", "details": ["<detail>", ...] }`. `details` is present only for validation errors.                                            |
 | Identifiers    | Session ids are UUIDs, user ids are UUIDs. Token ids are 16 hex characters.                                                                                                    |
 | Pagination     | Cursor in the `before` query parameter, page size fixed at 50. See [Pagination](#pagination).                                                                                  |
@@ -23,9 +23,9 @@ The API is the contract between the server and its own UI. It is stable enough t
 | Label              | Meaning                                                                                                                                                              |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public             | No credential needed.                                                                                                                                                |
-| UI session         | Server profile: the session cookie obtained by `POST /auth/login` (or by accepting an invitation). Local profile: nothing, every request is the local user.           |
+| UI session         | Server profile: the session cookie obtained by `POST /api/auth/login` (or by accepting an invitation). Local profile: nothing, every request is the local user.           |
 | UI session, admin  | As above, and the user has the role `admin` (the local user is an admin). Otherwise `403` `Insufficient permissions`.                                                     |
-| API token          | `Authorization: Bearer aq_<id>_<secret>`, server profile only. Accepted **only** on `/mcp`; every UI route answers `401` to a token.                                  |
+| API token          | `Authorization: Bearer aq_<id>_<secret>`, server profile only. Accepted **only** on `/api/mcp`; every UI route answers `401` to a token.                                  |
 
 Missing or invalid credentials give `401` (with the header `WWW-Authenticate: Bearer realm="agent-questions"` when the
 refusal comes from the application's own checks). Clients should rely on the status code.
@@ -44,10 +44,10 @@ Applied before routing, in this order:
    origins when `AQ_DEV=1`.
 4. **CORS**: for the accepted origins, with credentials, methods `GET POST PUT PATCH DELETE OPTIONS`, request headers
    `content-type`, `accept`, `authorization`, `mcp-protocol-version`, `mcp-session-id`, `last-event-id`, preflight cache
-   600 s. A preflight must carry `Access-Control-Request-Method`. This also applies to `/mcp`.
+   600 s. A preflight must carry `Access-Control-Request-Method`. This also applies to `/api/mcp`.
 
 Responses to `401` and `403` are logged at `warn` (method and path only, never credentials). With `AQ_LOG=debug` each request
-is also logged, with the invitation token masked in `/auth/invitations/<token>`.
+is also logged, with the invitation token masked in `/api/auth/invitations/<token>`.
 
 ### Pagination
 
@@ -70,13 +70,13 @@ Listing history and the admin session list return a page and a cursor:
 
 | Method and path                         | Authentication     | Purpose                                              |
 | --------------------------------------- | ------------------ | ---------------------------------------------------- |
-| `GET /health`                           | Public             | Liveness and database check                          |
-| `POST /mcp`                             | API token or local | MCP endpoint, see [MCP tools](mcp-tools.md)          |
-| `POST /auth/login`                      | Public             | Sign in (server profile)                             |
-| `POST /auth/logout`                     | Public             | Sign out                                             |
-| `GET /auth/me`                          | UI session         | Current identity                                     |
-| `GET /auth/invitations/:token`          | Public             | Look up an invitation                                |
-| `POST /auth/invitations/:token`         | Public             | Accept an invitation (choose a password)             |
+| `GET /api/health`                           | Public             | Liveness and database check                          |
+| `POST /api/mcp`                             | API token or local | MCP endpoint, see [MCP tools](mcp-tools.md)          |
+| `POST /api/auth/login`                      | Public             | Sign in (server profile)                             |
+| `POST /api/auth/logout`                     | Public             | Sign out                                             |
+| `GET /api/auth/me`                          | UI session         | Current identity                                     |
+| `GET /api/auth/invitations/:token`          | Public             | Look up an invitation                                |
+| `POST /api/auth/invitations/:token`         | Public             | Accept an invitation (choose a password)             |
 | `GET /api/sessions`                     | UI session         | Pending sessions                                     |
 | `GET /api/sessions/history`             | UI session         | Closed sessions, paginated                           |
 | `GET /api/sessions/:id`                 | UI session         | One session                                          |
@@ -95,13 +95,13 @@ Listing history and the admin session list return a page and a cursor:
 | `GET /api/admin/sessions`               | UI session, admin  | All sessions of all users, read-only                 |
 | `GET /api/admin/sessions/:id`           | UI session, admin  | One session of any user, read-only                   |
 
-Routes under `/auth`, `/api/account` and `/api/admin/users` need accounts. In the local profile they answer
-`404 {"error":"Les comptes ne sont disponibles qu'en profil server"}`, except `GET /auth/me` and `POST /auth/logout`.
-Every `/auth/invitations/*` call also answers that `404` in the local profile (a malformed body is reported first, with `400`).
+Routes under `/api/auth`, `/api/account` and `/api/admin/users` need accounts. In the local profile they answer
+`404 {"error":"Les comptes ne sont disponibles qu'en profil server"}`, except `GET /api/auth/me` and `POST /api/auth/logout`.
+Every `/api/auth/invitations/*` call also answers that `404` in the local profile (a malformed body is reported first, with `400`).
 
 ## Health
 
-### `GET /health`
+### `GET /api/health`
 
 Public, used by the Docker health check. Provided by `@nestjs/terminus`.
 
@@ -118,8 +118,7 @@ Public, used by the Docker health check. Provided by `@nestjs/terminus`.
 
 ## Unknown routes
 
-Any method on `/api`, `/api/*`, `/auth`, `/auth/*`, `/mcp/*`, `/.well-known`, `/.well-known/*`, `/sse`, `/sse/*`,
-`/messages` and `/messages/*` that no route handles answers:
+Any method on `/api/*`, `/.well-known` or `/.well-known/*` that no route handles answers:
 
 ```
 404 {"error":"Route not found"}
@@ -132,7 +131,7 @@ built, so `GET /s/<id>` and `GET /invite/<token>` are UI routes, not API routes.
 
 ## Authentication routes
 
-### `POST /auth/login`
+### `POST /api/auth/login`
 
 Server profile only (`404` in the local profile). Public.
 
@@ -161,12 +160,12 @@ memory (reset at restart) and cover at most 10,000 keys. A success clears the us
 
 The cookie lasts at most 7 days and expires after 1 day without activity.
 
-### `POST /auth/logout`
+### `POST /api/auth/logout`
 
 Public. Always answers `200 {"ok":true}`. Ends the server-side session, closes the event streams opened with it and clears
 the cookie (also when the session had already expired).
 
-### `GET /auth/me`
+### `GET /api/auth/me`
 
 UI session. Returns the caller identity:
 
@@ -176,12 +175,12 @@ UI session. Returns the caller identity:
 
 `mode` is `local` or `server`. In the local profile: `{"mode":"local","userId":"local","username":"local","role":"admin"}`.
 
-### `GET /auth/invitations/:token`
+### `GET /api/auth/invitations/:token`
 
 Public. `200 {"username":"alice"}` for a valid, unexpired invitation of an enabled account. Otherwise
 `404 {"error":"Invalid or expired invitation"}`.
 
-### `POST /auth/invitations/:token`
+### `POST /api/auth/invitations/:token`
 
 Public. Body `{ "password": "<10 to 200 characters>" }`. On success the password is set, the invitation is consumed,
 all earlier sessions and event streams of the account are closed, the user is signed in (cookie set) and the answer is
@@ -370,13 +369,13 @@ Body `{ "name": "Claude Code" }` (trimmed, 1 to 60 characters). `201`:
 }
 ```
 
-`token` is shown once; only its SHA-256 hash is stored. It expires after one year and is accepted only on `/mcp`.
+`token` is shown once; only its SHA-256 hash is stored. It expires after one year and is accepted only on `/api/mcp`.
 `409 Token limit reached (20): revoke one.` when the user already has 20 tokens. `400` on an invalid name.
 
 ### `DELETE /api/account/tokens/:id`
 
 `200 {"ok":true}`, or `404 {"error":"Token not found"}` (unknown, or belonging to another user). Revoked tokens are
-refused on `/mcp` immediately.
+refused on `/api/mcp` immediately.
 
 ## Administration routes (server profile, admin)
 
@@ -466,9 +465,9 @@ session of any user but cannot answer, edit or decline it: the write routes abov
 
 ## MCP endpoint
 
-`POST /mcp` is served by `@nestjs/mcp` (stateless Streamable HTTP). It goes through the same Host, Origin and CORS
+`POST /api/mcp` is served by `@nestjs/mcp` (stateless Streamable HTTP). It goes through the same Host, Origin and CORS
 checks. It accepts only an API token (server profile) or the local user; a session cookie is refused with `401`. Tools,
-parameters and results: [MCP tools](mcp-tools.md). Other methods on `/mcp` are handled by the MCP library and are not
+parameters and results: [MCP tools](mcp-tools.md). Other methods on `/api/mcp` are handled by the MCP library and are not
 covered here.
 
 ## Related

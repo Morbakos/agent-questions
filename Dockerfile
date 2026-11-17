@@ -37,5 +37,5 @@ VOLUME /data
 EXPOSE 4317
 USER bun
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
-  CMD bun -e "fetch('http://127.0.0.1:'+(process.env.AQ_PORT||4317)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD bun -e "fetch('http://127.0.0.1:'+(process.env.AQ_PORT||4317)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["bun", "node_modules/@morbakos/agent-questions/dist/index.js"]

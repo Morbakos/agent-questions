@@ -50,9 +50,9 @@ The route guards are a convenience for navigation. Real access control is on the
 
 ## Identity
 
-The browser never handles a token. In the `server` profile the session is an `HttpOnly` cookie set by the server. `AuthService` (`core/auth.ts`) loads the identity from `GET /auth/me` and exposes `me`, `isServer` and `isAdmin` signals. In the `local` profile `/auth/me` answers `{ mode: "local", ... }` and the UI shows no sign-in and no account menu.
+The browser never handles a token. In the `server` profile the session is an `HttpOnly` cookie set by the server. `AuthService` (`core/auth.ts`) loads the identity from `GET /api/auth/me` and exposes `me`, `isServer` and `isAdmin` signals. In the `local` profile `/api/auth/me` answers `{ mode: "local", ... }` and the UI shows no sign-in and no account menu.
 
-`authInterceptor` redirects to `/login` (with `returnUrl`) on a 401 from a same-origin call, except on public routes and the public calls (`/auth/login`, `/auth/invitations/`, `/auth/me`). `safeReturnUrl` only accepts a path of the application, never an external URL. There is no anti-CSRF header: the server relies on the `Sec-Fetch-Site` and `Origin` headers the browser adds itself.
+`authInterceptor` redirects to `/login` (with `returnUrl`) on a 401 from a same-origin call, except on public routes and the public calls (`/api/auth/login`, `/api/auth/invitations/`, `/api/auth/me`). `safeReturnUrl` only accepts a path of the application, never an external URL. There is no anti-CSRF header: the server relies on the `Sec-Fetch-Site` and `Origin` headers the browser adds itself.
 
 ## Following the agent
 

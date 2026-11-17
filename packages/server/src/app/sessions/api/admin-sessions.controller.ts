@@ -18,7 +18,7 @@ const PAGE_SIZE = 50;
  */
 @SessionOnly()
 @Roles("admin")
-@Controller("api/admin/sessions")
+@Controller("admin/sessions")
 export class AdminSessionsController {
 	private readonly logger = new Logger("supervision");
 

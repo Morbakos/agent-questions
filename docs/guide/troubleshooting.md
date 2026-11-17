@@ -131,10 +131,10 @@ Fix:
   `*` (for example `http://localhost:8080`).
 - Developing the UI with `ng serve`: start the server with `AQ_DEV=1` to allow `localhost:4200`.
 
-### 401 on `/mcp` (`server` profile)
+### 401 on `/api/mcp` (`server` profile)
 
 Causes: no `Authorization: Bearer aq_...` header, a revoked or expired token (tokens last one year), a disabled account (its tokens may also have been deleted when it was disabled),
-or a session cookie used instead of a token (cookies do not open `/mcp`).
+or a session cookie used instead of a token (cookies do not open `/api/mcp`).
 
 Fix: create a new token in "My account" and register it again with your client
 ([Connect your agent](connect-your-agent.md#shared-server-api-token)).
@@ -144,9 +144,9 @@ Fix: create a new token in "My account" and register it again with your client
 Your sign-in session ended (7 days maximum, 1 day idle, or your password was changed on another device, or the account
 was disabled). Sign in again.
 
-### The token works for `/mcp` but not for the UI
+### The token works for `/api/mcp` but not for the UI
 
-By design: a token opens only `/mcp`. Use your account to sign in to the UI.
+By design: a token opens only `/api/mcp`. Use your account to sign in to the UI.
 
 ### 403 `Insufficient permissions`
 
@@ -163,11 +163,14 @@ the others.
 The link is single-use, valid for 7 days, replaced by any newer link, and unusable if the account is disabled. Ask an
 admin for "New link".
 
-### 404 JSON under `/mcp/*`, `/api`, `/auth`, `/.well-known`, `/sse` or `/messages`
+### 404 JSON under `/api/*` or `/.well-known`
 
 Expected for unknown routes: the server answers 404 JSON rather than the UI page, so a client probing OAuth discovery under
-`/.well-known` fails cleanly. Agent Questions does not use OAuth: register the plain `/mcp` URL. It does not support the
-legacy HTTP+SSE transport either (`/sse`, `/messages`): use Streamable HTTP on `/mcp`, or the `--stdio` launcher.
+`/.well-known` fails cleanly. Agent Questions does not use OAuth: register the plain `/api/mcp` URL. It does not support the
+legacy HTTP+SSE transport either: use Streamable HTTP on `/api/mcp`, or the `--stdio` launcher.
+
+Upgrading from a version where the endpoint was `/mcp`: the old URL is gone. Register `/api/mcp` instead (and `/api/health`
+for probes).
 
 ## Docker and network
 
@@ -213,7 +216,7 @@ The launcher prints the last lines of `<data dir>/server.log` (`~/.agent-questio
 
 - **Port already in use**: another program (or a server with a different configuration) holds the port. Change
   `AQ_PORT` for both the client entry and the server, or stop the other program. The launcher only trusts a `200` from
-  `/health` with `status: ok`; any other service on the port makes the MCP `initialize` fail.
+  `/api/health` with `status: ok`; any other service on the port makes the MCP `initialize` fail.
 - **The server fails at startup**: read `server.log` (invalid `AQ_*` variable, locked database...).
 - **Stale lock**: `launcher.lock` in the data directory is ignored after 30 seconds; delete it if a launcher crashed.
 - **Slow first start**: migrations run on the first launch; the launcher waits up to 15 seconds.
@@ -221,4 +224,4 @@ The launcher prints the last lines of `<data dir>/server.log` (`~/.agent-questio
 
 ### Health check
 
-`GET /health` returns 200, or 503 if the database does not answer or the server is shutting down.
+`GET /api/health` returns 200, or 503 if the database does not answer or the server is shutting down.
