@@ -8,7 +8,7 @@ The agent calls the `ask_user` tool. You answer in a form in your browser. Your 
 
 ```text
  Agent (Claude Code, Codex, Cursor, ...)
-   |  MCP, Streamable HTTP: POST /mcp
+   |  MCP, Streamable HTTP: POST /api/mcp
    v
 +------------------------------ one process ------------------------------+
 |  ask_user / get_answers / update_questions     SQLite (sessions, drafts) |
@@ -26,7 +26,7 @@ docker run -d --name agent-questions --restart unless-stopped \
   -p 127.0.0.1:4317:4317 -v ~/.agent-questions:/data ghcr.io/morbakos/agent-questions:latest
 
 # 2. Claude Code, for all your projects
-claude mcp add --scope user --transport http agent-questions http://127.0.0.1:4317/mcp
+claude mcp add --scope user --transport http agent-questions http://127.0.0.1:4317/api/mcp
 ```
 
 Always publish the port on `127.0.0.1` (as above): the default profile has no authentication. In Docker the browser
@@ -50,7 +50,7 @@ claude mcp add --scope user agent-questions -- npx -y @morbakos/agent-questions 
 The package is distributed through GitHub Packages: `npx` needs an `.npmrc` entry for the `@morbakos` scope with a
 token. See [Connect your agent](docs/guide/connect-your-agent.md#option-b-stdio-launcher-no-docker).
 
-Other agents (Codex, Cursor, VS Code...) only need the MCP HTTP URL `http://127.0.0.1:4317/mcp`: see
+Other agents (Codex, Cursor, VS Code...) only need the MCP HTTP URL `http://127.0.0.1:4317/api/mcp`: see
 [Connect your agent](docs/guide/connect-your-agent.md).
 
 ## Example

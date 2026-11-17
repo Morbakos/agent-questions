@@ -48,11 +48,11 @@ async function inviteBob(adminPage: Page, browser: Browser): Promise<{ page: Pag
 	return { page, context };
 }
 
-test("anonymous: the API and MCP require authentication, /health stays public", async ({ page }) => {
-	expect((await fetch(`${server.url}/health`)).status).toBe(200);
+test("anonymous: the API and MCP require authentication, /api/health stays public", async ({ page }) => {
+	expect((await fetch(`${server.url}/api/health`)).status).toBe(200);
 	expect((await fetch(`${server.url}/api/sessions`)).status).toBe(401);
 	expect((await fetch(`${server.url}/api/events`)).status).toBe(401);
-	expect((await fetch(`${server.url}/mcp`, { method: "POST" })).status).toBe(401);
+	expect((await fetch(`${server.url}/api/mcp`, { method: "POST" })).status).toBe(401);
 	// Without a session, the UI redirects to the sign-in page.
 	await page.goto(server.url);
 	await expect(page).toHaveURL(/\/login/);

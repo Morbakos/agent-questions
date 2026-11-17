@@ -42,13 +42,13 @@ describe("UI authentication", () => {
 			expect(router.navigate).toHaveBeenCalledWith(["/login"], {});
 
 			vi.mocked(router.navigate).mockClear();
-			client.post("/auth/login", {}).subscribe({ error: () => undefined });
-			http.expectOne("/auth/login").flush({}, { status: 401, statusText: "Unauthorized" });
-			client.get("/auth/invitations/abc").subscribe({ error: () => undefined });
-			http.expectOne("/auth/invitations/abc").flush({}, { status: 401, statusText: "Unauthorized" });
-			// /auth/me answers 401 without a session: a normal response at startup, not an expiry.
-			client.get("/auth/me").subscribe({ error: () => undefined });
-			http.expectOne("/auth/me").flush({}, { status: 401, statusText: "Unauthorized" });
+			client.post("/api/auth/login", {}).subscribe({ error: () => undefined });
+			http.expectOne("/api/auth/login").flush({}, { status: 401, statusText: "Unauthorized" });
+			client.get("/api/auth/invitations/abc").subscribe({ error: () => undefined });
+			http.expectOne("/api/auth/invitations/abc").flush({}, { status: 401, statusText: "Unauthorized" });
+			// /api/auth/me answers 401 without a session: a normal response at startup, not an expiry.
+			client.get("/api/auth/me").subscribe({ error: () => undefined });
+			http.expectOne("/api/auth/me").flush({}, { status: 401, statusText: "Unauthorized" });
 			expect(router.navigate).not.toHaveBeenCalled();
 		});
 
@@ -82,19 +82,19 @@ describe("UI authentication", () => {
 		it("loads the identity, and tells the local profile, member and admin apart", async () => {
 			const auth = TestBed.inject(AuthService);
 			const load = auth.load();
-			http.expectOne("/auth/me").flush(local);
+			http.expectOne("/api/auth/me").flush(local);
 			await load;
 			expect(auth.isServer()).toBe(false);
 			expect(auth.isAdmin()).toBe(false);
 
 			const member = auth.load();
-			http.expectOne("/auth/me").flush(server("member"));
+			http.expectOne("/api/auth/me").flush(server("member"));
 			await member;
 			expect(auth.isServer()).toBe(true);
 			expect(auth.isAdmin()).toBe(false);
 
 			const admin = auth.load();
-			http.expectOne("/auth/me").flush(server("admin"));
+			http.expectOne("/api/auth/me").flush(server("admin"));
 			await admin;
 			expect(auth.isAdmin()).toBe(true);
 		});
@@ -102,11 +102,11 @@ describe("UI authentication", () => {
 		it("signs in then loads the identity", async () => {
 			const auth = TestBed.inject(AuthService);
 			const done = auth.login("alice", "long-password");
-			const request = http.expectOne("/auth/login");
+			const request = http.expectOne("/api/auth/login");
 			expect(request.request.body).toEqual({ username: "alice", password: "long-password" });
 			request.flush({ ok: true });
 			await Promise.resolve();
-			http.expectOne("/auth/me").flush(server("member"));
+			http.expectOne("/api/auth/me").flush(server("member"));
 			await done;
 			expect(auth.me()?.username).toBe("alice");
 		});
@@ -114,9 +114,9 @@ describe("UI authentication", () => {
 		it("opens the session by accepting an invitation", async () => {
 			const auth = TestBed.inject(AuthService);
 			const done = auth.acceptInvitation("token/süper", "long-password");
-			http.expectOne("/auth/invitations/token%2Fs%C3%BCper").flush({ ok: true });
+			http.expectOne("/api/auth/invitations/token%2Fs%C3%BCper").flush({ ok: true });
 			await Promise.resolve();
-			http.expectOne("/auth/me").flush(server("member"));
+			http.expectOne("/api/auth/me").flush(server("member"));
 			await done;
 			expect(auth.isServer()).toBe(true);
 		});
@@ -125,7 +125,7 @@ describe("UI authentication", () => {
 			const auth = TestBed.inject(AuthService);
 			auth.me.set(server("member"));
 			const done = auth.logout();
-			http.expectOne("/auth/logout").flush({ ok: true });
+			http.expectOne("/api/auth/logout").flush({ ok: true });
 			await done;
 			expect(auth.me()).toBeNull();
 			expect(router.navigateByUrl).toHaveBeenCalledWith("/login");
@@ -154,7 +154,7 @@ describe("UI authentication", () => {
 				) as Promise<unknown>;
 			const admin = asCanMatch();
 			await Promise.resolve();
-			http.expectOne("/auth/me").flush(server("admin"));
+			http.expectOne("/api/auth/me").flush(server("admin"));
 			expect(await admin).toBe(true);
 			expect(auth.isAdmin()).toBe(true);
 
@@ -165,7 +165,7 @@ describe("UI authentication", () => {
 			});
 			const anonymous = asCanMatch();
 			await Promise.resolve();
-			http.expectOne("/auth/me").flush({}, { status: 401, statusText: "Unauthorized" });
+			http.expectOne("/api/auth/me").flush({}, { status: 401, statusText: "Unauthorized" });
 			expect(String(await anonymous)).toBe("/login?returnUrl=%2Fadmin%2Fsessions%3Fpage%3D2");
 		});
 
@@ -183,7 +183,7 @@ describe("UI authentication", () => {
 			const auth = TestBed.inject(AuthService);
 			const pending = run(serverGuard);
 			await Promise.resolve();
-			http.expectOne("/auth/me").flush(local);
+			http.expectOne("/api/auth/me").flush(local);
 			expect(String(await pending)).toBe("/");
 			auth.me.set(server("member"));
 			expect(await run(serverGuard)).toBe(true);

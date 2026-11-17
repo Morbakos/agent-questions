@@ -34,7 +34,7 @@ async function waitHealthy(url: string, child: ChildProcess, log: () => string):
 			throw new Error(`the server exited (code ${child.exitCode}):\n${log()}`);
 		}
 		try {
-			if ((await fetch(`${url}/health`)).ok) {
+			if ((await fetch(`${url}/api/health`)).ok) {
 				return;
 			}
 		} catch {
@@ -103,7 +103,7 @@ export async function callTool(
 	args: Record<string, unknown>,
 	token?: string,
 ): Promise<{ isError: boolean; text: string; json: Record<string, unknown> | undefined }> {
-	const response = await fetch(`${server.url}/mcp`, {
+	const response = await fetch(`${server.url}/api/mcp`, {
 		method: "POST",
 		headers: { ...MCP_HEADERS, ...(token ? { authorization: `Bearer ${token}` } : {}) },
 		body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }),

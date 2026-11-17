@@ -27,11 +27,11 @@ The `local` profile only listens on loopback (or on `0.0.0.0` inside a container
 | Decorator                | Effect                                                                                                                                  |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | (none)                   | Any registered provider. Do not rely on this for UI routes                                                                              |
-| `@Public()`              | No authentication: `/health`, login, logout, invitations, `UnknownRouteController`                                                      |
+| `@Public()`              | No authentication: `/api/health`, login, logout, invitations, `UnknownRouteController`                                                      |
 | `@SessionOnly()`         | `Authenticate({ providers: [SessionAuth, LocalAuth] })`: browser identities only, **an API token is refused (401)**                     |
 | `@Roles("admin")`        | `RolesGuard`: 403 for other roles. Runs after the global guard, so the user is known                                                    |
 
-The module for MCP does the opposite: `McpModule.forRoot({ decorators: [Authenticate({ providers: [ApiKeyAuth, LocalAuth] })] })`, so `/mcp` accepts API tokens and the local user, and never the session cookie.
+The module for MCP does the opposite: `McpModule.forRoot({ decorators: [Authenticate({ providers: [ApiKeyAuth, LocalAuth] })] })`, so `/api/mcp` accepts API tokens and the local user, and never the session cookie.
 
 Why `@SessionOnly()` exists: without it the global guard would accept an API token on any route. A leaked MCP client configuration would then open the UI's API, user administration and token management. **Every controller that serves the UI must carry `@SessionOnly()`.** A test in `auth.e2e-spec.ts` checks that a valid and an invalid API token get 401 on a hand-written list of UI routes; add your route to that list.
 
@@ -73,7 +73,7 @@ Login failures never reveal whether the account exists: an unknown, disabled or 
 
 ## Logging rules
 
-Never log a password, a cookie or a token. 401 and 403 are logged by `http-setup.ts` with method and path only. `redactUrl` masks the invitation token in `/auth/invitations/<token>`. An e2e test checks that none of these secrets appear in the logs.
+Never log a password, a cookie or a token. 401 and 403 are logged by `http-setup.ts` with method and path only. `redactUrl` masks the invitation token in `/api/auth/invitations/<token>`. An e2e test checks that none of these secrets appear in the logs.
 
 ## Checklist: touching authentication
 

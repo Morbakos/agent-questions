@@ -36,10 +36,14 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
     - `http/` : `http-setup.ts` (garde Host/Origin, `no-store`, journal des requêtes), `security-headers.ts`, `allowed.ts`,
       `http-error*.ts`, `cursor.ts`, `log-levels.ts` (`AQ_LOG` → niveaux du `Logger` Nest). **L'UI est servie par
       `@nestjs/serve-static`** (`fallthrough: true`, `index.html` pour les routes d'Angular). Son chargeur Fastify **ignore
-      `exclude`** : `unknown-route.controller.ts` répond donc 404 JSON sous `/api`, `/auth`, `/mcp/*`, `/.well-known`,
-      `/sse` et `/messages` (transport HTTP+SSE historique, non supporté) (`@Public()`) : sans cela un client MCP qui sonde la découverte OAuth recevrait la page de l'UI ou un 401 et échouerait.
+      `exclude`** : `unknown-route.controller.ts` répond donc 404 JSON sous `/api/*` et `/.well-known` (`@Public()`) : sans cela
+      un client MCP qui sonde la découverte OAuth recevrait la page de l'UI ou un 401 et échouerait. **Tout le back vit sous un
+      préfixe global unique `api`** (`app.setGlobalPrefix` dans `setupApplication`, constantes dans `http/api-prefix.ts`) :
+      MCP (`/api/mcp`), `/api/health` et `/api/auth/*` compris ; les `@Controller` le déclarent **sans** `api/`. Seul
+      `.well-known` en est exclu (les clients MCP le sondent à la racine). Un nouveau contrôleur n'a donc rien à enregistrer
+      pour le 404 JSON.
       Jokers `*` simples, pas `*path` (Fastify). **Un seul journal** : le `Logger` de Nest ; Fastify a `logger: false`.
-      Requêtes journalisées en `debug`, sans `/health`.
+      Requêtes journalisées en `debug`, sans `/api/health`.
     - `storage/` : `orm.ts` (`ormOptions`, `prepareDatabase` : PRAGMA WAL puis migrations, `createOrm` pour les tests),
       `storage-bootstrap.ts` (`prepareDatabase` dans `onModuleInit` ; **tout accès à la base au démarrage va dans
       `onApplicationBootstrap`**), `migrations/` (listées explicitement dans `orm.ts` : le bundle n'a pas de découverte de
@@ -49,7 +53,7 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
       sessions en lecture seule, chaque lecture est journalisée), `sessions.service.ts` (règles métier + attente des réponses).
     - `events/` : flux SSE `GET /api/events` (`@Sse()`), `ui-hub.ts` (diffusion aux onglets, maintien toutes les 15 s,
       fermeture sur `sign-out` / désactivation / expiration, rejeu de l'annonce récente).
-    - `mcp/` : `McpModule.forRoot` de `@nestjs/mcp` (la route `/mcp` est un contrôleur comme un autre : le garde global
+    - `mcp/` : `McpModule.forRoot` de `@nestjs/mcp` (la route `/api/mcp` est un contrôleur comme un autre : le garde global
       l'authentifie ; `decorators` n'y accepte que les jetons d'API et le profil local). `api/question-tools.ts` : méthodes
       `@Tool` de `QuestionTools`, dont les descriptions dépendent de la config lue à l'évaluation des décorateurs
       (`getRuntimeConfig()`). **`question-tools.ts` ne s'importe jamais statiquement** : `QuestionsMcpModule.register(config)`
@@ -59,7 +63,7 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
       relire le changelog avant de monter). Son garde global protège toute route sauf `@Public()` ; l'utilisateur
       (`Principal`) est sur `request.user` (`@CurrentUser()` / `@CurrentPrincipal()`), jamais lu du corps ni d'un en-tête.
       Trois fournisseurs (`providers/`, selon le profil) : `SessionAuth` (cookie, server), `ApiKeyAuth` (jeton
-      `aq_<id>_<secret>`, server), `LocalAuth` (utilisateur fixe, local). **Un jeton d'API n'ouvre que `/mcp`** (`decorators`
+      `aq_<id>_<secret>`, server), `LocalAuth` (utilisateur fixe, local). **Un jeton d'API n'ouvre que `/api/mcp`** (`decorators`
       du module MCP) ; tout contrôleur de l'UI porte `@SessionOnly()` : **un nouveau contrôleur doit le porter** (une liste
       écrite à la main dans `auth.e2e-spec.ts` énumère les routes : l'y ajouter). `@Roles("admin")` réserve une route aux admins (isolation assurée par le filtrage des
       repositories, pas de `@nestjs/authorization`). Sessions : `SignInService`, cookie `__Host-sid` (`sid` en HTTP hors
@@ -69,9 +73,9 @@ tourne sur Bun. Ordre de build : `ui` → `server`.
       comptes, invitations (liens à usage unique hachés SHA-256, `tokens.ts`), `login-throttle.ts`, `accounts.service.ts`
       (jetons valables un an). Le propriétaire d'un appel d'outil est `context.request.user`. Les refus 401/403 sont
       journalisés par `http-setup.ts` (méthode et chemin, jamais de secret).
-    - `health/` : `/health` (`@nestjs/terminus` : 200, ou 503 si la base ne répond pas ou pendant l'arrêt).
+    - `health/` : `/api/health` (`@nestjs/terminus` : 200, ou 503 si la base ne répond pas ou pendant l'arrêt).
     - `stdio/` : lanceur `agent-questions --stdio` (sous-commande de `main.ts`, branchée **avant** `loadConfig()`).
-      `probe.ts` (`/health`, cible `AQ_MCP_URL` ou `AQ_PORT`), `launcher-lock.ts` (`<dataDir>/launcher.lock`, `wx`,
+      `probe.ts` (`/api/health`, cible `AQ_MCP_URL` ou `AQ_PORT`), `launcher-lock.ts` (`<dataDir>/launcher.lock`, `wx`,
       périmé après 30 s), `spawn-server.ts` (démarre ce même bundle sans `--stdio`, détaché, journal
       `<dataDir>/server.log` ; ne le tue jamais), `bridge.ts` (relais JSON-RPC `StdioServerTransport` ↔
       `StreamableHTTPClientTransport`, `AQ_TOKEN` en `Bearer`), `run-stdio.ts` (renvoie le code de sortie).
@@ -146,15 +150,15 @@ Bun est le seul gestionnaire de paquets ; Node reste le runtime des tests Vitest
   `fixture.whenStable()` peut ne jamais se résoudre : utiliser `fixture.detectChanges()` après `vi.advanceTimersByTimeAsync`.
 - **E2E navigateur** (`e2e/`, Playwright + Chromium) : lance le serveur **construit** sur un port libre avec une base
   temporaire. `harness.ts` (`startServer`, `callTool`), `local.spec.ts` (profil local), `server.spec.ts` (profil server :
-  connexion, invitation, isolation, supervision, jetons limités à `/mcp`), `inspector.spec.ts` (CLI de
-  `@modelcontextprotocol/inspector` : un client MCP tiers contre `/mcp`). Premier lancement : `bunx playwright install chromium`.
+  connexion, invitation, isolation, supervision, jetons limités à `/api/mcp`), `inspector.spec.ts` (CLI de
+  `@modelcontextprotocol/inspector` : un client MCP tiers contre `/api/mcp`). Premier lancement : `bunx playwright install chromium`.
 - Après une modification : `bun run lint`, `bun run format:check`, `bun run build`, `bun run test`, puis un essai réel
   (voir « Vérifier »). Après un changement de dépendance ou d'import, ajouter `bun run verify:built` : le bundle se
   compile même quand le démarrage échoue (export introuvable, par exemple).
 
 ## Architecture : le point à ne pas casser
 
-Tout vit dans **un seul processus HTTP** (UI, API, base, `/mcp`), toujours lancé : tous les agents s'y connectent (Docker
+Tout vit dans **un seul processus HTTP** (UI, API, base, `/api/mcp`), toujours lancé : tous les agents s'y connectent (Docker
 avec `restart: unless-stopped`, ou `npx`) ; un jeton d'API passe par l'en-tête `Authorization` de l'entrée HTTP du client.
 `SessionsService.wait()` repose sur un `EventEmitter` **en mémoire** : quand l'utilisateur envoie ses réponses via l'API de
 l'UI, l'événement réveille l'appel `ask_user` qui attendait. Ne séparez pas l'UI et le handler MCP dans deux processus sans
@@ -179,7 +183,7 @@ remplacer l'émetteur (polling SQLite, par exemple).
   Dismiss » ; titre préfixé de « (1) » en arrière-plan. Aucun événement sur `update_questions` : la page concernée le voit en
   sondant (`SessionState.pendingUpdate`), **propose** la nouvelle version et suspend l'envoi (`canSubmit`), car le serveur
   valide contre la version à jour. Marche aussi avec `AQ_NO_OPEN=1`.
-- **Le SDK envoie déjà un `: keepalive` SSE** toutes les 15 s sur `/mcp` : inutile d'en ajouter.
+- **Le SDK envoie déjà un `: keepalive` SSE** toutes les 15 s sur `/api/mcp` : inutile d'en ajouter.
 
 ## Les descriptions d'outils sont des prompts
 
@@ -204,11 +208,11 @@ Deux profils. **Local** : pas de compte, écoute sur `127.0.0.1`, à ne pas expo
 
 - Les en-têtes de sécurité viennent de `app.useSecurityHeaders()` (`http/security-headers.ts`) avec `useDefaults: false`
   pour la CSP (celle de Nest contient `upgrade-insecure-requests`, qui casserait l'UI en HTTP sur localhost).
-  `http-setup.ts` ne pose que `Cache-Control: no-store` sur `/api` et `/auth`. Les journaux masquent le jeton de
-  `/auth/invitations/<jeton>`.
+  `http-setup.ts` ne pose que `Cache-Control: no-store` sur `/api`. Les journaux masquent le jeton de
+  `/api/auth/invitations/<jeton>`.
 - Le hook `onRequest` de `http-setup.ts` vérifie `Host` et `Origin` (DNS rebinding). Origines supplémentaires :
   `AQ_ALLOWED_ORIGINS`, **jamais `*`**.
-- Le CORS vient de `app.enableCors()` (origines de `http/allowed.ts`) et s'applique aussi à `/mcp`, bien que `@nestjs/mcp`
+- Le CORS vient de `app.enableCors()` (origines de `http/allowed.ts`) et s'applique aussi à `/api/mcp`, bien que `@nestjs/mcp`
   y fasse `reply.hijack()`. Un pré-vol exige `Access-Control-Request-Method`. Les contrôles `allowedOrigins` du module MCP
   sont désactivés : ceux de `http-setup.ts` font foi.
 - **CSP et Angular** : l'UI est construite avec `security.autoCsp`, qui publie l'empreinte de son script inline dans une
@@ -250,7 +254,7 @@ Deux profils. **Local** : pas de compte, écoute sur `127.0.0.1`, à ne pas expo
     - `LoginThrottle` plutôt que `@nestjs/throttler` : il ne compte pas les seuls échecs, par identifiant et par adresse.
     - Garde Host/Origin, `Cache-Control: no-store` et journal des requêtes dans `http-setup.ts` : aucun package ne les
       fournit (un intercepteur ne voit ni les refus des gardes, ni les réponses `hijack`). Même fichier : un corps JSON
-      invalide sur `/mcp` est refusé par Fastify avant tout contrôleur (ni filtre Nest ni garde) ; un hook `onSend` le
+      invalide sur `/api/mcp` est refusé par Fastify avant tout contrôleur (ni filtre Nest ni garde) ; un hook `onSend` le
       convertit en erreur JSON-RPC `-32700`.
 - Les types partagés vivent dans `packages/shared/` : ne pas les redéclarer. Aucune étape de build après un changement.
 - Après un changement de comportement visible (variable `AQ_*`, outil, flux), mettre le README et les pages concernées de `docs/` (guide, operations, reference, development) à jour.
@@ -270,7 +274,7 @@ Détail dans `.claude/rules/git-workflow.md`.
 Serveur lancé (`bun run start`), puis :
 
 ```bash
-curl -s -X POST http://127.0.0.1:4317/mcp -H 'Content-Type: application/json' \
+curl -s -X POST http://127.0.0.1:4317/api/mcp -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
@@ -282,7 +286,7 @@ requête est envoyée.
 ## Docker
 
 `Dockerfile` : build de l'UI et du serveur, installation du tarball dans l'étape de build, puis image `oven/bun:alpine`
-(utilisateur `bun`, uid 1000 ; `HEALTHCHECK` sur `/health`) avec `AQ_BIND_HOST=0.0.0.0`, `AQ_NO_OPEN=1`,
+(utilisateur `bun`, uid 1000 ; `HEALTHCHECK` sur `/api/health`) avec `AQ_BIND_HOST=0.0.0.0`, `AQ_NO_OPEN=1`,
 `AQ_DATA_DIR=/data`. `docker-compose.yml` contient `agent-questions` et un service `llama` (essai avec un modèle local),
 **non nécessaire** pour Claude Code : `docker compose up -d --build agent-questions`.
 

@@ -53,14 +53,14 @@ bun run verify:built
 1. installs the tarball into a temporary project, as a user would;
 2. checks that `dist/index.js`, `dist/ui/index.html`, `README.md` and `LICENSE` exist;
 3. starts the installed server on a free port (loopback, temporary data directory, `AQ_NO_OPEN=1`);
-4. waits up to 20 s for `/health`, fetches `/` and expects HTML, and sends an MCP `initialize` request to `/mcp`.
+4. waits up to 20 s for `/api/health`, fetches `/` and expects HTML, and sends an MCP `initialize` request to `/api/mcp`.
 
 ## Docker
 
 The `Dockerfile` has two stages.
 
 1. **build** (`oven/bun:1.4.4`): installs with `bun install --frozen-lockfile`, runs `bun run build`, packs the root package (`bun pm pack`), runs `verify-package.ts` on Bun, and installs the tarball into `/install`. A startup failure stops the image build.
-2. **runtime** (`oven/bun:1.4.4-alpine`): copies `/install`, runs as user `bun` (uid 1000) with `/data` as a volume. It sets `NODE_ENV=production`, `AQ_BIND_HOST=0.0.0.0`, `AQ_IN_CONTAINER=1`, `AQ_NO_OPEN=1` and `AQ_DATA_DIR=/data`, exposes 4317, and has a `HEALTHCHECK` that fetches `/health`. The command is `bun node_modules/@morbakos/agent-questions/dist/index.js`.
+2. **runtime** (`oven/bun:1.4.4-alpine`): copies `/install`, runs as user `bun` (uid 1000) with `/data` as a volume. It sets `NODE_ENV=production`, `AQ_BIND_HOST=0.0.0.0`, `AQ_IN_CONTAINER=1`, `AQ_NO_OPEN=1` and `AQ_DATA_DIR=/data`, exposes 4317, and has a `HEALTHCHECK` that fetches `/api/health`. The command is `bun node_modules/@morbakos/agent-questions/dist/index.js`.
 
 The image runs the exact tarball that would be published. Bun is the production runtime, so the image needs neither Node nor a package manager. For deployment, see [Docker](../operations/docker.md). `docker-compose.yml` defines `agent-questions` and an optional `llama` service (a local-model trial, not needed for normal use); `docker compose up -d --build agent-questions` starts only the former.
 
@@ -79,7 +79,7 @@ The image runs the exact tarball that would be published. Bun is the production 
 7. Install Chromium, `bun run test:e2e` (Playwright traces uploaded on failure)
 8. `bun pm pack`, then `verify-package.ts` on Node (the Bun run is done by the Dockerfile, see the `docker` job)
 
-**`docker`**: `docker build` (the Dockerfile builds the package itself and starts it on Bun), start the container, check `/health`, insert a session row into `/data`, restart the container and check that the session survived (persistent volume).
+**`docker`**: `docker build` (the Dockerfile builds the package itself and starts it on Bun), start the container, check `/api/health`, insert a session row into `/data`, restart the container and check that the session survived (persistent volume).
 
 Any failing step fails the build; reproduce locally with the same commands.
 
@@ -92,7 +92,7 @@ Versions: the release version is `version` in the root `package.json`. The works
 **Docker image.** `.github/workflows/publish-image.yml` builds and pushes `ghcr.io/morbakos/agent-questions` when a tag `vX.Y.Z` is pushed, or when started manually on an existing tag. It:
 
 1. checks that the ref is a tag and equals `v<version of package.json>`, and fails otherwise;
-2. builds the image once, with its final tags, without pushing, starts it and requires `/health` to answer;
+2. builds the image once, with its final tags, without pushing, starts it and requires `/api/health` to answer;
 3. logs in to `ghcr.io` and pushes those same tags (`X.Y.Z`, `X.Y` and `latest`) with `docker push`: the image that is published is the one that was verified, not a rebuild.
 
 A suggested order (nothing enforces it except the tag check above):

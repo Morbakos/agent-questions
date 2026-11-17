@@ -72,7 +72,7 @@ come from `packages/shared/src/schema.ts` and `packages/shared/src/limits.ts`; t
 | RG-C-08 | 10 failed sign-ins in 15 minutes, per username or per address, block sign-in (429). The counter is in memory: a restart resets it. |
 | RG-C-09 | A sign-in session lasts at most 7 days and 1 day without activity.                                                                |
 | RG-C-10 | An API token is shown once, expires after one year, has a name of 1 to 60 characters, and a user has at most 20.                  |
-| RG-C-11 | An API token opens only `/mcp`.                                                                                                   |
+| RG-C-11 | An API token opens only `/api/mcp`.                                                                                                   |
 | RG-C-12 | An admin views all sessions read-only. Each read is logged.                                                                       |
 
 ## Browser

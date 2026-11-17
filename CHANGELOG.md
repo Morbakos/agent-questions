@@ -10,10 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - `agent-questions --stdio`: launcher for MCP clients that start servers over stdio. It attaches to the shared HTTP server,
-  starts a detached one when none runs, and bridges stdio to `/mcp`. New variables `AQ_MCP_URL` and `AQ_TOKEN`.
+  starts a detached one when none runs, and bridges stdio to `/api/mcp`. New variables `AQ_MCP_URL` and `AQ_TOKEN`.
 
 ### Changed
 
+- **Breaking**: every back route now lives under the single prefix `/api`: the MCP endpoint is `/api/mcp` (was `/mcp`),
+  authentication is `/api/auth/*` (was `/auth/*`) and the health check is `/api/health` (was `/health`). Re-register the
+  MCP URL in your agents (`claude mcp add … /api/mcp`), update reverse-proxy rules and `HEALTHCHECK` probes. API tokens
+  are unchanged. Only `/.well-known/*` stays outside, answering a JSON 404. The legacy `/sse` and `/messages` routes are
+  no longer special-cased.
 - The whole product is now in English: the UI, the API error messages, the answer validation messages, the server logs
   and the terminal output. The default session title, when `ask_user` is called without one, is now "Agent questions".
 - Documentation rewritten in English and reorganised under `docs/` (guide, operations, reference, development).

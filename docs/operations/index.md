@@ -3,7 +3,7 @@
 This section is for people who run Agent Questions for other users: deployment, HTTPS, backups, upgrades, security
 and monitoring. For environment variables, see the [configuration reference](../reference/configuration.md).
 
-Everything runs in a **single HTTP process** (web UI, API, SQLite database and the `/mcp` endpoint). Do not run
+Everything runs in a **single HTTP process** (web UI, API, SQLite database and the `/api/mcp` endpoint). Do not run
 several replicas against the same database: answers wake waiting agents through an in-memory event emitter, and the
 database has one writer.
 
@@ -13,10 +13,10 @@ database has one writer.
 | --------------------------------------------- | ------------------------------------------------------------ |
 | [Deployment profiles](deployment-profiles.md) | `local` vs `server`, required variables, first administrator |
 | [Docker](docker.md)                           | Image, compose file, volume, health check                    |
-| [Reverse proxy](reverse-proxy.md)             | HTTPS, trusted proxies, SSE and long `/mcp` requests         |
+| [Reverse proxy](reverse-proxy.md)             | HTTPS, trusted proxies, SSE and long `/api/mcp` requests         |
 | [Backup and upgrade](backup-and-upgrade.md)   | Backing up SQLite, restoring, migrations, image tags         |
 | [Security](security.md)                       | Threat model, cookies, CSRF, CSP, throttling, hardening      |
-| [Monitoring](monitoring.md)                   | `/health`, log levels, database growth                       |
+| [Monitoring](monitoring.md)                   | `/api/health`, log levels, database growth                       |
 
 ## Going to production: checklist
 
@@ -31,6 +31,6 @@ database has one writer.
    change it in the UI.
 6. Back up the volume regularly and test a restore. See [backup and upgrade](backup-and-upgrade.md).
 7. Pin the image to a version tag (for example `0.1.1`), not `latest`.
-8. Monitor `/health` and keep `AQ_LOG=info`. See [monitoring](monitoring.md).
+8. Monitor `/api/health` and keep `AQ_LOG=info`. See [monitoring](monitoring.md).
 9. Plan a manual clean-up of old sessions: nothing purges them automatically.
 10. Review the [hardening checklist](security.md#hardening-checklist).

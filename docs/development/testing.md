@@ -52,7 +52,7 @@ const app = await createTestApplication({ config: testConfig() });
 await app.init();
 await app.getHttpAdapter().getInstance().ready();
 
-const response = await app.inject({ method: "GET", url: "/health" });
+const response = await app.inject({ method: "GET", url: "/api/health" });
 
 await app.close();
 ```
@@ -93,10 +93,10 @@ bun run test:e2e
 
 | File                    | Covers                                                                                                                                    |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `harness.ts`            | `startServer(env)` (free port, temp directory, waits for `/health`), `callTool`                                                           |
+| `harness.ts`            | `startServer(env)` (free port, temp directory, waits for `/api/health`), `callTool`                                                           |
 | `local.spec.ts`         | Local profile: styles and CSP without console errors, agent asks / user answers, notes, decline, live tab, late answer, markdown cleanup |
-| `server.spec.ts`        | Server profile: login, invitation, multi-user isolation, admin supervision, tokens limited to `/mcp`, session expiry                       |
-| `inspector.spec.ts`     | The CLI of `@modelcontextprotocol/inspector` against `/mcp`: a third-party MCP client                                                      |
+| `server.spec.ts`        | Server profile: login, invitation, multi-user isolation, admin supervision, tokens limited to `/api/mcp`, session expiry                       |
+| `inspector.spec.ts`     | The CLI of `@modelcontextprotocol/inspector` against `/api/mcp`: a third-party MCP client                                                      |
 
 Specs run in parallel (each test has its own server). On CI there is one retry and traces are kept on failure (uploaded as `playwright-traces`). Locally, traces are written to `test-results/`.
 

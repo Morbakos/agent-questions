@@ -3,7 +3,7 @@
 ## The flow
 
 ```
-Agent --MCP (POST /mcp)--> ask_user --> SQLite (sessions, drafts, answers)
+Agent --MCP (POST /api/mcp)--> ask_user --> SQLite (sessions, drafts, answers)
                                 |                  ^
                                 v                  |
                     browser: http://127.0.0.1:4317/s/<session_id>
@@ -15,7 +15,7 @@ Agent --MCP (POST /mcp)--> ask_user --> SQLite (sessions, drafts, answers)
 4. You send the answers (or decline). The server stores them.
 5. The agent gets the answers, either in the `ask_user` call that was waiting, or later through `get_answers`.
 
-The server is one HTTP process that holds the UI, the API, the database and `/mcp`. Several agents can use the same
+The server is one HTTP process that holds the UI, the API, the database and `/api/mcp`. Several agents can use the same
 server and share the same UI.
 
 ## Session

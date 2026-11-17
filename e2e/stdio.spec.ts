@@ -35,7 +35,7 @@ function pidOnPort(port: number): number | undefined {
 
 async function healthy(port: number): Promise<boolean> {
 	try {
-		return (await fetch(`http://127.0.0.1:${port}/health`)).ok;
+		return (await fetch(`http://127.0.0.1:${port}/api/health`)).ok;
 	} catch {
 		return false;
 	}

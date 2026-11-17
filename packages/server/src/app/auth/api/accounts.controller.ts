@@ -19,7 +19,7 @@ import { parseBody } from "./validate.js";
 
 /** Account of the signed-in user: password and personal tokens (for MCP clients). */
 @SessionOnly()
-@Controller("api/account")
+@Controller("account")
 export class AccountController {
 	constructor(@Inject(AccountsService) private readonly accounts: AccountsService) {}
 
@@ -57,7 +57,7 @@ export class AccountController {
 /** Account management, reserved for administrators. */
 @SessionOnly()
 @Roles("admin")
-@Controller("api/admin/users")
+@Controller("admin/users")
 export class AdminUsersController {
 	constructor(@Inject(AccountsService) private readonly accounts: AccountsService) {}
 

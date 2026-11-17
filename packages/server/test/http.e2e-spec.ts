@@ -58,7 +58,7 @@ describe("Host / Origin guard and health", () => {
 		await other.getHttpAdapter().getInstance().ready();
 		try {
 			const call = (headers: Record<string, string>) =>
-				other.getHttpAdapter().getInstance().inject({ method: "GET", url: "/health", headers });
+				other.getHttpAdapter().getInstance().inject({ method: "GET", url: "/api/health", headers });
 			expect(
 				(await call({ host: "questions.example.com", origin: "https://questions.example.com" })).statusCode,
 			).toBe(200);
@@ -84,21 +84,21 @@ describe("Host / Origin guard and health", () => {
 	it("answers the CORS preflight", async () => {
 		const response = await inject({
 			method: "OPTIONS",
-			url: "/mcp",
+			url: "/api/mcp",
 			headers: { origin: "http://127.0.0.1:4317", "access-control-request-method": "POST" },
 		});
 		expect(response.statusCode).toBe(204);
 	});
 
 	it("exposes /health", async () => {
-		const response = await inject({ method: "GET", url: "/health" });
+		const response = await inject({ method: "GET", url: "/api/health" });
 		expect(response.statusCode).toBe(200);
 		expect(response.json()).toMatchObject({ status: "ok", info: { database: { status: "up" } } });
 	});
 
 	it("answers 503 on /health when the database is closed", async () => {
 		await app.get(MikroORM).close();
-		const response = await inject({ method: "GET", url: "/health" });
+		const response = await inject({ method: "GET", url: "/api/health" });
 		expect(response.statusCode).toBe(503);
 		expect(response.json()).toMatchObject({ status: "error", error: { database: { status: "down" } } });
 	});

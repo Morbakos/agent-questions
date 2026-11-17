@@ -8,11 +8,11 @@
 AppModule.register(options)
   CoreModule        config, database, repositories, UiHub (global)
   AuthModule        @nestjs/authentication, providers, accounts, login
-  QuestionsMcpModule  /mcp and the QuestionTools methods (async module)
+  QuestionsMcpModule  /api/mcp and the QuestionTools methods (async module)
   ServeStaticModule the Angular build, only when the UI directory exists
   SessionsModule    SessionsService + UI and admin controllers
   EventsModule      SSE stream GET /api/events
-  TerminusModule    + HealthController (GET /health), UnknownRouteController
+  TerminusModule    + HealthController (GET /api/health), UnknownRouteController
 ```
 
 Entry points:
@@ -32,7 +32,7 @@ Directory layout of `src/app/`:
 | `events/`   | `UiHub` and the SSE controller                                                                                   |
 | `mcp/`      | `QuestionsMcpModule`, `api/question-tools.ts`, `relay-hint.ts`, `open.ts`, `mcp-error-result.ts`                 |
 | `auth/`     | Providers, accounts, invitations, login throttle (see [Authentication](authentication.md))                       |
-| `health/`   | `GET /health`                                                                                                    |
+| `health/`   | `GET /api/health`                                                                                                    |
 
 ## Layering
 
@@ -156,15 +156,15 @@ Home-grown code that stays, and why:
 - `question-tools.ts` is **never imported statically**. `QuestionsMcpModule.register(config)` calls `setRuntimeConfig(config)`, then `await import("./api/question-tools.js")`.
 - `getRuntimeConfig()` is for that purpose only. Everywhere else, inject the configuration.
 - Descriptions are therefore fixed per process (and per test file).
-- `/mcp` is a regular Nest controller route: the global guard authenticates it and `http-setup.ts` checks Host/Origin. The module's own `allowedOrigins` check is disabled so it does not reject origins declared in `AQ_ALLOWED_ORIGINS`. Its `decorators` option restricts `/mcp` to API tokens and the local profile.
+- `/api/mcp` is a regular Nest controller route: the global guard authenticates it and `http-setup.ts` checks Host/Origin. The module's own `allowedOrigins` check is disabled so it does not reject origins declared in `AQ_ALLOWED_ORIGINS`. Its `decorators` option restricts `/api/mcp` to API tokens and the local profile.
 - `@nestjs/mcp` replies with `reply.hijack()`, so Fastify's `onResponse` hook does not fire for successful MCP calls. Tools log their own waits under the `mcp` logger.
 
 How to add a tool: see [Conventions](conventions.md#add-an-mcp-tool). Behaviour of the waiting tools: [Waiting for answers](waiting-for-answers.md).
 
 ## Logging
 
-One logger only: Nest's `Logger`. Fastify runs with `logger: false`. `AQ_LOG` (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) maps to Nest log levels in `http/log-levels.ts`. Requests are logged at `debug`, except `/health`, with secrets masked (`redactUrl` hides invitation tokens). 401 and 403 responses are logged at `warn` with method and path only.
+One logger only: Nest's `Logger`. Fastify runs with `logger: false`. `AQ_LOG` (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) maps to Nest log levels in `http/log-levels.ts`. Requests are logged at `debug`, except `/api/health`, with secrets masked (`redactUrl` hides invitation tokens). 401 and 403 responses are logged at `warn` with method and path only.
 
 ## Health
 
-`GET /health` (public, `@nestjs/terminus`) returns 200 with the database ping result, or 503 when the database does not answer or during shutdown. Docker's `HEALTHCHECK` uses it.
+`GET /api/health` (public, `@nestjs/terminus`) returns 200 with the database ping result, or 503 when the database does not answer or during shutdown. Docker's `HEALTHCHECK` uses it.

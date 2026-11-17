@@ -45,7 +45,7 @@ docker compose stop agent-questions
 docker run --rm -v ~/.agent-questions:/data -v "$PWD":/backup alpine \
   sh -c 'rm -rf /data/* && tar xzf /backup/agent-questions-2026-01-01.tgz -C /data && chown -R 1000:1000 /data'
 docker compose start agent-questions
-curl -f http://127.0.0.1:4317/health
+curl -f http://127.0.0.1:4317/api/health
 ```
 
 If you restore a single `.sqlite` file (for example an online backup), delete any `agent-questions.sqlite-wal` and
@@ -64,7 +64,7 @@ out, and tokens created after it no longer exist.
    ```bash
    docker compose pull agent-questions
    docker compose up -d agent-questions
-   curl -f https://questions.example.com/health
+   curl -f https://questions.example.com/api/health
    docker compose logs --tail 50 agent-questions
    ```
 
@@ -101,9 +101,9 @@ Workflow `.github/workflows/publish-image.yml`, for maintainers:
    (`workflow_dispatch`), but only on a tag, never on a branch.
 3. It fails if the tag differs from `package.json`'s version.
 4. It builds the image (the Dockerfile itself installs the packed tarball and starts it on Bun as a smoke test),
-   starts the finished image, and requires `GET /health` to answer. A failure stops the run **before** anything is
+   starts the finished image, and requires `GET /api/health` to answer. A failure stops the run **before** anything is
    pushed.
 5. It logs in to `ghcr.io` with the workflow's `GITHUB_TOKEN` and pushes the three tags.
 
 Runs for the same ref are serialised and never cancelled. The continuous-integration workflow (`ci.yml`) builds the
-image, checks `/health`, and checks that data survives a container restart on a volume.
+image, checks `/api/health`, and checks that data survives a container restart on a volume.

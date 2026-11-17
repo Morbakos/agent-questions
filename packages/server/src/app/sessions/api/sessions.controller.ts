@@ -12,7 +12,7 @@ const HISTORY_PAGE_SIZE = 50;
 
 /** A user's UI sees only their own sessions: the owner comes from the authenticated principal. */
 @SessionOnly()
-@Controller("api/sessions")
+@Controller("sessions")
 export class SessionsController {
 	constructor(@Inject(SessionsService) private readonly sessions: SessionsService) {}
 

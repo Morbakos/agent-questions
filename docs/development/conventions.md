@@ -80,7 +80,7 @@ Remember that the description is a prompt, and that it is evaluated at import ti
 2. **Put `@SessionOnly()` on any controller that serves the UI.** Without it an API token would be accepted. Add `@Roles("admin")` for admin-only routes. Use `@Public()` only for routes that must be anonymous (health, login, invitations).
 3. Get the user with `@CurrentPrincipal() principal: Principal` and pass `principal.userId` as the owner. Never read it from the body, query or headers.
 4. Validate bodies with a shared zod schema (`parseBody(Schema, body)` or `safeParse`) and throw `HttpError(status, message, details?)`.
-5. Under a new URL prefix, extend the JSON 404 list in `UnknownRouteController`, otherwise a mistyped URL returns the UI's HTML.
+5. Declare the controller path **without** the `api` prefix (it is global): nothing to register for the JSON 404 of unknown URLs.
 6. Add the route to the hand-written list in the test "no UI route accepts an API token, whether the token is valid or not" in `packages/server/test/auth.e2e-spec.ts`, and cover isolation between users.
 7. Add the call to `core/api.ts` in the UI, and document it in the [HTTP API reference](../reference/http-api.md).
 

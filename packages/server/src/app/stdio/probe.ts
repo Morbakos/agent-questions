@@ -1,9 +1,10 @@
 import { isLoopbackHost } from "@app/config/config.js";
+import { HEALTH_PATH, MCP_PATH } from "@app/http/api-prefix.js";
 
 const DEFAULT_PORT = 4317;
 
 export interface McpTarget {
-	/** Full URL of the `/mcp` endpoint. */
+	/** Full URL of the `/api/mcp` endpoint. */
 	mcpUrl: URL;
 	/** Whether the launcher may start a local server (never for a remote `AQ_MCP_URL`). */
 	local: boolean;
@@ -24,13 +25,13 @@ export function resolveTarget(env: NodeJS.ProcessEnv = process.env): McpTarget {
 	if (!Number.isInteger(port) || port < 1 || port > 65535) {
 		throw new Error("AQ_PORT must be a valid TCP port (1-65535).");
 	}
-	return { mcpUrl: new URL(`http://127.0.0.1:${port}/mcp`), local: true };
+	return { mcpUrl: new URL(`http://127.0.0.1:${port}${MCP_PATH}`), local: true };
 }
 
-/** `GET <origin>/health`: alive when it answers 200 with `{ "status": "ok" }`. Never throws. */
+/** `GET <origin>/api/health`: alive when it answers 200 with `{ "status": "ok" }`. Never throws. */
 export async function probeHealth({ origin }: URL, timeoutMs = 1000): Promise<boolean> {
 	try {
-		const response = await fetch(`${origin}/health`, { signal: AbortSignal.timeout(timeoutMs) });
+		const response = await fetch(`${origin}${HEALTH_PATH}`, { signal: AbortSignal.timeout(timeoutMs) });
 		if (response.status !== 200) {
 			return false;
 		}

@@ -94,7 +94,7 @@ Limits and properties:
 
 - up to 20 tokens per user;
 - a token expires after one year;
-- a token opens **only** `/mcp`: not the UI API, not your account. The session cookie, conversely, does not open `/mcp`;
+- a token opens **only** `/api/mcp`: not the UI API, not your account. The session cookie, conversely, does not open `/api/mcp`;
 - a disabled account's tokens are refused. If the administrator also chose to delete them when disabling the account, they are gone for good: after re-enabling, create new ones.
 
 How to use a token in a client: [Connect your agent](connect-your-agent.md#shared-server-api-token).

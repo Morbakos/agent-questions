@@ -30,7 +30,7 @@ Two kinds of requests stay open for a long time:
 
 - `GET /api/events`: the Server-Sent Events stream used by the UI. The server sends a keep-alive comment every 15 s and
   closes the stream when the account signs out, is disabled, or the login expires; the UI reconnects.
-- `POST /mcp` with `wait_seconds` set on `ask_user`, `get_answers` or `update_questions`: the call stays open until the
+- `POST /api/mcp` with `wait_seconds` set on `ask_user`, `get_answers` or `update_questions`: the call stays open until the
   user answers or the delay (at most 3600 s) elapses. By default (`AQ_WAIT_SECONDS=0`) calls return immediately.
 
 So the proxy must not buffer responses, and its upstream read timeout must exceed the longest wait you allow (3600 s
@@ -58,7 +58,7 @@ server {
         # The application accepts bodies up to 10 MiB (large ask_user payloads); nginx's default is only 1 MiB.
         client_max_body_size 10m;
 
-        # SSE and long /mcp calls
+        # SSE and long /api/mcp calls
         proxy_buffering off;
         proxy_read_timeout 3700s;
         proxy_send_timeout 3700s;
@@ -95,12 +95,12 @@ These snippets are reference configurations, not tested by the project's CI.
 ## Checking the setup
 
 ```bash
-curl -i https://questions.example.com/health
+curl -i https://questions.example.com/api/health
 ```
 
 Expect `200` with `{"status":"ok",...}`. Then sign in from a browser and confirm the page shows no blank screen or `403`
 on `/api/...` calls. If an agent client fails to connect while the UI works, check that its URL is
-`https://questions.example.com/mcp` and that its `Authorization: Bearer aq_...` header reaches the server
+`https://questions.example.com/api/mcp` and that its `Authorization: Bearer aq_...` header reaches the server
 (see [troubleshooting](../guide/troubleshooting.md)).
 
 ## Chaining proxies

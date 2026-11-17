@@ -51,7 +51,7 @@ const call = (app: NestFastifyApplication, options: Record<string, unknown>) =>
 
 /** Signs in and returns the headers of a logged-in browser (cookie). */
 const login = async (app: NestFastifyApplication, username = "admin", password = ADMIN_PASSWORD) => {
-	const response = await call(app, { method: "POST", url: "/auth/login", payload: { username, password } });
+	const response = await call(app, { method: "POST", url: "/api/auth/login", payload: { username, password } });
 	expect(response.statusCode, response.body).toBe(200);
 	return { cookie: String(response.headers["set-cookie"]).split(";")[0] ?? "" };
 };
@@ -71,7 +71,7 @@ async function createMember(
 	const invitation = created.json<UserInvitation>();
 	const accepted = await call(app, {
 		method: "POST",
-		url: `/auth/invitations/${tokenOf(invitation.inviteUrl)}`,
+		url: `/api/auth/invitations/${tokenOf(invitation.inviteUrl)}`,
 		payload: { password },
 	});
 	expect(accepted.statusCode, accepted.body).toBe(200);
@@ -91,7 +91,7 @@ describe("first administrator bootstrap", () => {
 	it("creates the configured admin, who can sign in", async () => {
 		const { app } = await start();
 		const admin = await login(app);
-		const me = await call(app, { method: "GET", url: "/auth/me", headers: admin });
+		const me = await call(app, { method: "GET", url: "/api/auth/me", headers: admin });
 		expect(me.json<AuthMe>()).toMatchObject({ mode: "server", username: "admin", role: "admin" });
 	});
 
@@ -136,7 +136,7 @@ describe("first administrator bootstrap", () => {
 			(
 				await call(app, {
 					method: "POST",
-					url: "/auth/login",
+					url: "/api/auth/login",
 					payload: { username: "admin", password: ADMIN_PASSWORD },
 				})
 			).statusCode,
@@ -155,15 +155,15 @@ describe("sign-in", () => {
 			["POST", "/api/sessions/x/answers"],
 			["POST", "/api/sessions/x/decline"],
 			["GET", "/api/events"],
-			["POST", "/mcp"],
-			["GET", "/auth/me"],
+			["POST", "/api/mcp"],
+			["GET", "/api/auth/me"],
 			["GET", "/api/account/tokens"],
 			["GET", "/api/admin/users"],
 		] as const) {
 			const response = await call(app, { method, url, payload: method === "GET" ? undefined : {} });
 			expect(response.statusCode, `${method} ${url}`).toBe(401);
 		}
-		expect((await call(app, { method: "GET", url: "/health" })).statusCode).toBe(200);
+		expect((await call(app, { method: "GET", url: "/api/health" })).statusCode).toBe(200);
 	});
 
 	it("answers 404 (not 401) to an unknown route under a reserved prefix: OAuth discovery does not start", async () => {
@@ -184,12 +184,12 @@ describe("sign-in", () => {
 		const { app } = await start();
 		const wrong = await call(app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			payload: { username: "admin", password: "bad-password" },
 		});
 		const unknown = await call(app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			payload: { username: "unknown", password: "bad-password" },
 		});
 		expect(wrong.statusCode).toBe(401);
@@ -201,7 +201,7 @@ describe("sign-in", () => {
 		const http = await start();
 		const plain = await call(http.app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			payload: { username: "admin", password: ADMIN_PASSWORD },
 		});
 		expect(String(plain.headers["set-cookie"])).toMatch(/HttpOnly.*SameSite=Lax|SameSite=Lax.*HttpOnly/);
@@ -210,7 +210,7 @@ describe("sign-in", () => {
 		const https = await start(serverConfig({ baseUrl: "https://questions.example.com" }));
 		const secure = await call(https.app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			headers: { host: "questions.example.com" },
 			payload: { username: "admin", password: ADMIN_PASSWORD },
 		});
@@ -259,8 +259,8 @@ describe("sign-in", () => {
 	it("sign-out invalidates the session on the server side", async () => {
 		const { app } = await start();
 		const admin = await login(app);
-		expect((await call(app, { method: "POST", url: "/auth/logout", headers: admin })).statusCode).toBe(200);
-		expect((await call(app, { method: "GET", url: "/auth/me", headers: admin })).statusCode).toBe(401);
+		expect((await call(app, { method: "POST", url: "/api/auth/logout", headers: admin })).statusCode).toBe(200);
+		expect((await call(app, { method: "GET", url: "/api/auth/me", headers: admin })).statusCode).toBe(401);
 	});
 
 	it("throttles attempts: 429 after 10 failures, even with the right password", async () => {
@@ -268,14 +268,14 @@ describe("sign-in", () => {
 		for (let attempt = 0; attempt < 10; attempt += 1) {
 			const response = await call(app, {
 				method: "POST",
-				url: "/auth/login",
+				url: "/api/auth/login",
 				payload: { username: "admin", password: `faux-${attempt}-mot-de-passe` },
 			});
 			expect(response.statusCode).toBe(401);
 		}
 		const blocked = await call(app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			payload: { username: "admin", password: ADMIN_PASSWORD },
 		});
 		expect(blocked.statusCode).toBe(429);
@@ -292,7 +292,7 @@ describe("sign-in", () => {
 		const { app } = await start();
 		await call(app, {
 			method: "POST",
-			url: "/auth/login",
+			url: "/api/auth/login",
 			payload: { username: "admin", password: "attempted-secret" },
 		});
 		await call(app, {
@@ -324,33 +324,33 @@ describe("invitations and administration", () => {
 		expect(invitation.inviteUrl).toMatch(/^http:\/\/127\.0\.0\.1:4317\/invite\/[\w-]{20,}$/);
 		const token = tokenOf(invitation.inviteUrl);
 
-		expect((await call(app, { method: "GET", url: `/auth/invitations/${token}` })).json()).toEqual({
+		expect((await call(app, { method: "GET", url: `/api/auth/invitations/${token}` })).json()).toEqual({
 			username: "bob",
 		});
 		const weak = await call(app, {
 			method: "POST",
-			url: `/auth/invitations/${token}`,
+			url: `/api/auth/invitations/${token}`,
 			payload: { password: "court" },
 		});
 		expect(weak.statusCode).toBe(400);
 		const accepted = await call(app, {
 			method: "POST",
-			url: `/auth/invitations/${token}`,
+			url: `/api/auth/invitations/${token}`,
 			payload: { password: "mot-de-passe-bob" },
 		});
 		expect(accepted.statusCode).toBe(200);
 		const bob = { cookie: String(accepted.headers["set-cookie"]).split(";")[0] ?? "" };
-		expect((await call(app, { method: "GET", url: "/auth/me", headers: bob })).json<AuthMe>()).toMatchObject({
+		expect((await call(app, { method: "GET", url: "/api/auth/me", headers: bob })).json<AuthMe>()).toMatchObject({
 			username: "bob",
 			role: "member",
 		});
 
-		expect((await call(app, { method: "GET", url: `/auth/invitations/${token}` })).statusCode).toBe(404);
+		expect((await call(app, { method: "GET", url: `/api/auth/invitations/${token}` })).statusCode).toBe(404);
 		expect(
 			(
 				await call(app, {
 					method: "POST",
-					url: `/auth/invitations/${token}`,
+					url: `/api/auth/invitations/${token}`,
 					payload: { password: "un-autre-mot-de-passe" },
 				})
 			).statusCode,
@@ -416,10 +416,10 @@ describe("invitations and administration", () => {
 			})
 		).json<UserInvitation>();
 		expect(
-			(await call(app, { method: "GET", url: `/auth/invitations/${tokenOf(first.inviteUrl)}` })).statusCode,
+			(await call(app, { method: "GET", url: `/api/auth/invitations/${tokenOf(first.inviteUrl)}` })).statusCode,
 		).toBe(404);
 		expect(
-			(await call(app, { method: "GET", url: `/auth/invitations/${tokenOf(second.inviteUrl)}` })).statusCode,
+			(await call(app, { method: "GET", url: `/api/auth/invitations/${tokenOf(second.inviteUrl)}` })).statusCode,
 		).toBe(200);
 	});
 
@@ -434,7 +434,7 @@ describe("invitations and administration", () => {
 			(
 				await call(app, {
 					method: "POST",
-					url: "/mcp",
+					url: "/api/mcp",
 					headers: { ...MCP_HEADERS, ...bearer(token) },
 					payload: INITIALIZE,
 				})
@@ -448,13 +448,13 @@ describe("invitations and administration", () => {
 			payload: { disabled: true },
 		});
 		expect(disabled.json<UserSummary>().disabled).toBe(true);
-		expect((await call(app, { method: "GET", url: "/auth/me", headers: bob })).statusCode).toBe(401);
+		expect((await call(app, { method: "GET", url: "/api/auth/me", headers: bob })).statusCode).toBe(401);
 		expect(await mcpCall()).toBe(401);
 		expect(
 			(
 				await call(app, {
 					method: "POST",
-					url: "/auth/login",
+					url: "/api/auth/login",
 					payload: { username: "bob", password: "mot-de-passe-bob" },
 				})
 			).statusCode,
@@ -480,7 +480,7 @@ describe("invitations and administration", () => {
 			(
 				await call(app, {
 					method: "POST",
-					url: "/mcp",
+					url: "/api/mcp",
 					headers: { ...MCP_HEADERS, ...bearer(created.token) },
 					payload: INITIALIZE,
 				})
@@ -511,7 +511,7 @@ describe("invitations and administration", () => {
 			(
 				await call(app, {
 					method: "POST",
-					url: "/mcp",
+					url: "/api/mcp",
 					headers: { ...MCP_HEADERS, ...bearer(token) },
 					payload: INITIALIZE,
 				})
@@ -531,7 +531,7 @@ describe("invitations and administration", () => {
 	it("always keeps an active administrator", async () => {
 		const { app } = await start();
 		const admin = await login(app);
-		const me = (await call(app, { method: "GET", url: "/auth/me", headers: admin })).json<AuthMe>();
+		const me = (await call(app, { method: "GET", url: "/api/auth/me", headers: admin })).json<AuthMe>();
 		const demote = await call(app, {
 			method: "PATCH",
 			url: `/api/admin/users/${me.userId}`,
@@ -592,13 +592,13 @@ describe("user account", () => {
 		});
 		expect(changed.statusCode).toBe(200);
 
-		expect((await call(app, { method: "GET", url: "/auth/me", headers: first })).statusCode).toBe(200);
-		expect((await call(app, { method: "GET", url: "/auth/me", headers: second })).statusCode).toBe(401);
+		expect((await call(app, { method: "GET", url: "/api/auth/me", headers: first })).statusCode).toBe(200);
+		expect((await call(app, { method: "GET", url: "/api/auth/me", headers: second })).statusCode).toBe(401);
 		expect(
 			(
 				await call(app, {
 					method: "POST",
-					url: "/auth/login",
+					url: "/api/auth/login",
 					payload: { username: "admin", password: ADMIN_PASSWORD },
 				})
 			).statusCode,
@@ -632,18 +632,23 @@ describe("user account", () => {
 		]);
 
 		// A personal token only works for MCP: neither the UI API, nor account or token management.
-		for (const url of ["/api/sessions", "/api/account/tokens", "/api/admin/users", "/auth/me"]) {
+		for (const url of ["/api/sessions", "/api/account/tokens", "/api/admin/users", "/api/auth/me"]) {
 			expect((await call(app, { method: "GET", url, headers: bearer(token) })).statusCode, url).toBe(401);
 		}
 		const mcp = await call(app, {
 			method: "POST",
-			url: "/mcp",
+			url: "/api/mcp",
 			headers: { ...MCP_HEADERS, ...bearer(token) },
 			payload: INITIALIZE,
 		});
 		expect(mcp.statusCode).toBe(200);
 		expect(mcp.body).toContain("serverInfo");
-		const anonymous = await call(app, { method: "POST", url: "/mcp", headers: MCP_HEADERS, payload: INITIALIZE });
+		const anonymous = await call(app, {
+			method: "POST",
+			url: "/api/mcp",
+			headers: MCP_HEADERS,
+			payload: INITIALIZE,
+		});
 		expect(anonymous.statusCode).toBe(401);
 
 		expect(
@@ -651,7 +656,7 @@ describe("user account", () => {
 		).toBe(200);
 		const afterRevoke = await call(app, {
 			method: "POST",
-			url: "/mcp",
+			url: "/api/mcp",
 			headers: { ...MCP_HEADERS, ...bearer(token) },
 			payload: INITIALIZE,
 		});
@@ -672,7 +677,7 @@ describe("user account", () => {
 		});
 		const { token } = created.json<CreatedApiToken>();
 		const routes = [
-			["GET", "/auth/me"],
+			["GET", "/api/auth/me"],
 			["GET", "/api/sessions"],
 			["GET", "/api/sessions/history"],
 			["GET", "/api/events"],
@@ -718,7 +723,7 @@ describe("session isolation between users", () => {
 		const admin = await login(app);
 		const { headers: bob } = await createMember(app, admin);
 		const sessions = app.get(SessionsService);
-		const adminId = (await call(app, { method: "GET", url: "/auth/me", headers: admin })).json<AuthMe>().userId;
+		const adminId = (await call(app, { method: "GET", url: "/api/auth/me", headers: admin })).json<AuthMe>().userId;
 		const secret = (
 			await sessions.findOrCreate(adminId, { title: "Secret de l'admin", questions: [textQuestion()] })
 		).session;
@@ -755,7 +760,7 @@ describe("MCP-side isolation", () => {
 		const { app } = await start();
 		const admin = await login(app);
 		const { headers: bob } = await createMember(app, admin);
-		const adminId = (await call(app, { method: "GET", url: "/auth/me", headers: admin })).json<AuthMe>().userId;
+		const adminId = (await call(app, { method: "GET", url: "/api/auth/me", headers: admin })).json<AuthMe>().userId;
 		const secret = (
 			await app.get(SessionsService).findOrCreate(adminId, { title: "Secret", questions: [textQuestion()] })
 		).session;
@@ -766,7 +771,7 @@ describe("MCP-side isolation", () => {
 		const tool = async (name: string, args: Record<string, unknown>) => {
 			const response = await call(app, {
 				method: "POST",
-				url: "/mcp",
+				url: "/api/mcp",
 				headers: { ...MCP_HEADERS, ...bearer(token) },
 				payload: { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name, arguments: args } },
 			});
@@ -846,7 +851,7 @@ describe("account hardening", () => {
 			Array.from({ length: 30 }, () =>
 				call(app, {
 					method: "POST",
-					url: "/auth/login",
+					url: "/api/auth/login",
 					payload: { username: "admin", password: "mauvais-mot-de-passe" },
 				}),
 			),
@@ -860,7 +865,7 @@ describe("account hardening", () => {
 		const { app } = await start();
 		const response = await call(app, {
 			method: "POST",
-			url: "/auth/logout",
+			url: "/api/auth/logout",
 			headers: { cookie: "sid=expiree" },
 		});
 		expect(response.statusCode).toBe(200);
@@ -907,7 +912,7 @@ describe("local profile", () => {
 	it("works with no account or token, using the local user", async () => {
 		const { app } = await start(testConfig());
 		expect((await call(app, { method: "GET", url: "/api/sessions" })).statusCode).toBe(200);
-		expect((await call(app, { method: "GET", url: "/auth/me" })).json<AuthMe>()).toMatchObject({
+		expect((await call(app, { method: "GET", url: "/api/auth/me" })).json<AuthMe>()).toMatchObject({
 			mode: "local",
 			userId: "local",
 			role: "admin",
@@ -917,10 +922,10 @@ describe("local profile", () => {
 	it("does not expose account management", async () => {
 		const { app } = await start(testConfig());
 		for (const [method, url] of [
-			["POST", "/auth/login"],
+			["POST", "/api/auth/login"],
 			["GET", "/api/admin/users"],
 			["GET", "/api/account/tokens"],
-			["GET", "/auth/invitations/x"],
+			["GET", "/api/auth/invitations/x"],
 		] as const) {
 			const response = await call(app, {
 				method,

@@ -189,7 +189,7 @@ export class AccountComponent implements OnInit {
 
 	/** Ready-to-paste command; the token is never stored in the browser. */
 	protected command(token: string): string {
-		return `claude mcp add --transport http agent-questions ${location.origin}/mcp --header "Authorization: Bearer ${token}"`;
+		return `claude mcp add --transport http agent-questions ${location.origin}/api/mcp --header "Authorization: Bearer ${token}"`;
 	}
 
 	protected async changePassword(): Promise<void> {
